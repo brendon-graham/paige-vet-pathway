@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="app-version" content="pvp-v1.3.0">
+<meta name="theme-color" content="#0f5f57">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Road to Vet">
+<title>Paige — Road to Vet</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230f5f57'/%3E%3Cpath d='M90 40c-14 0-25 11-25 25v18a25 25 0 0050 0V65c0-14-11-25-25-25z' fill='none' stroke='%23fff' stroke-width='9'/%3E%3Ccircle cx='90' cy='118' r='16' fill='none' stroke='%23fff' stroke-width='9'/%3E%3Ccircle cx='90' cy='118' r='5' fill='%23ffb4a2'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#f5f3ec; --card:#ffffff; --ink:#1c2b28; --ink-soft:#5a6b66;
+    --line:#e4e1d6; --brand:#0f5f57; --brand-d:#0a463f; --brand-soft:#e2efeb;
+    --accent:#e8836a; --accent-soft:#fbe6df; --gold:#caa04a; --gold-soft:#f7edd6;
+    --ok:#2e9e6b; --shadow:0 2px 10px rgba(20,40,36,.06); --shadow-lg:0 8px 30px rgba(20,40,36,.12);
+    --r:16px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#131917; --card:#1c2523; --ink:#eef2f0; --ink-soft:#a2b0ab;
+      --line:#2c3a36; --brand:#48c9b0; --brand-d:#7ddcc8; --brand-soft:#1b3330;
+      --accent:#f19d86; --accent-soft:#3a2620; --gold:#e0bd6f; --gold-soft:#33291a;
+      --shadow:0 2px 10px rgba(0,0,0,.3); --shadow-lg:0 8px 30px rgba(0,0,0,.45);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+    padding-bottom:calc(74px + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px}
+  header.app{
+    background:linear-gradient(160deg,var(--brand-d),var(--brand));
+    color:#fff; padding:calc(18px + env(safe-area-inset-top)) 16px 20px; position:relative; overflow:hidden;
+  }
+  header.app .halo{position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06)}
+  header.app .halo2{position:absolute;right:40px;top:60px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.05)}
+  header.app h1{margin:0;font-size:19px;letter-spacing:.2px;font-weight:700;position:relative}
+  header.app .sub{margin:2px 0 0;font-size:12.5px;opacity:.82;position:relative}
+  #gear-btn{position:absolute;top:calc(16px + env(safe-area-inset-top));right:14px;z-index:3;background:rgba(255,255,255,.15);border:0;color:#fff;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  #gear-btn svg{width:19px;height:19px}
+  .sync-note{font-size:12px;background:var(--bg);border-radius:10px;padding:10px 12px;margin:2px 0 14px;color:var(--ink-soft);line-height:1.5}
+  .sync-state{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;margin-bottom:12px}
+  .sync-state.local{background:var(--gold-soft);color:var(--gold)}
+  .sync-state.on{background:var(--brand-soft);color:var(--brand-d)}
+  .ring-row{display:flex;align-items:center;gap:16px;margin-top:16px;position:relative}
+  .ring{width:74px;height:74px;flex:0 0 auto;position:relative}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+  .ring .pct small{font-weight:600;font-size:9px;opacity:.8;letter-spacing:.5px}
+  .ring-meta{font-size:13px;line-height:1.45}
+  .ring-meta b{font-weight:700}
+  .ring-meta .m{opacity:.85;display:block;margin-top:2px;font-size:12px}
+
+  main{padding-top:16px}
+  .view{display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+  .card h2{margin:0 0 4px;font-size:16px}
+  .card h3{margin:0 0 6px;font-size:14.5px}
+  .muted{color:var(--ink-soft)}
+  .small{font-size:12.5px}
+  .tiny{font-size:11.5px}
+  .sec-title{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);font-weight:700;margin:22px 4px 10px}
+  .sec-title:first-child{margin-top:4px}
+
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
+  .pill.farm{background:var(--brand-soft);color:var(--brand-d)}
+  .pill.clinic{background:var(--accent-soft);color:var(--accent)}
+  .pill.broaden{background:var(--gold-soft);color:var(--gold)}
+  .pill.req{background:#fde8e4;color:#c9503a}
+  @media (prefers-color-scheme: dark){.pill.req{background:#3a2320;color:#f19d86}}
+
+  /* Journey timeline */
+  .phase{margin-bottom:6px}
+  .phase-head{display:flex;align-items:center;gap:10px;margin:18px 2px 8px}
+  .phase-dot{width:30px;height:30px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;background:var(--brand)}
+  .phase-dot.done{background:var(--ok)}
+  .phase-dot.future{background:var(--line);color:var(--ink-soft)}
+  .phase-head .pt{font-weight:700;font-size:15px}
+  .phase-head .py{font-size:12px;color:var(--ink-soft)}
+  .timeline{position:relative;margin-left:14px;padding-left:22px;border-left:2px solid var(--line)}
+  .ms{position:relative;padding:10px 0 10px 4px}
+  .ms:before{content:"";position:absolute;left:-30px;top:14px;width:13px;height:13px;border-radius:50%;background:var(--card);border:2px solid var(--brand)}
+  .ms.done:before{background:var(--ok);border-color:var(--ok)}
+  .ms label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+  .ms .box{width:22px;height:22px;flex:0 0 auto;border-radius:7px;border:2px solid var(--brand);display:flex;align-items:center;justify-content:center;margin-top:1px;transition:.15s}
+  .ms.done .box{background:var(--ok);border-color:var(--ok)}
+  .ms .box svg{width:13px;height:13px;opacity:0}
+  .ms.done .box svg{opacity:1}
+  .ms .mt{font-weight:600;font-size:14px}
+  .ms.done .mt{text-decoration:line-through;color:var(--ink-soft)}
+  .ms .md{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+
+  /* Subjects */
+  .yr-tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin:0 -4px;scrollbar-width:none}
+  .yr-tabs::-webkit-scrollbar{display:none}
+  .yr-tab{flex:0 0 auto;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:13px;color:var(--ink-soft)}
+  .yr-tab.active{background:var(--brand);border-color:var(--brand);color:#fff}
+  .subj{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}
+  .subj:last-child{border-bottom:0}
+  .subj .ic{width:34px;height:34px;flex:0 0 auto;border-radius:10px;background:var(--brand-soft);color:var(--brand-d);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+  .subj .ic.opt{background:var(--gold-soft);color:var(--gold)}
+  .subj .n{font-weight:700;font-size:14.5px}
+  .subj .d{font-size:12.5px;color:var(--ink-soft);margin-top:1px}
+  .subj .tag{margin-top:4px}
+  .callout{background:var(--brand-soft);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--brand-d);margin-top:4px}
+  .callout.warn{background:var(--accent-soft);color:var(--accent)}
+
+  /* Experience */
+  .opp{padding:14px 0;border-bottom:1px solid var(--line)}
+  .opp:last-child{border-bottom:0}
+  .opp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .opp .title{font-weight:700;font-size:15px}
+  .opp .teaches{font-size:12.5px;color:var(--ink-soft);margin:4px 0}
+  .opp .why{font-size:12.5px;background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:6px}
+  .opp .why b{color:var(--brand-d)}
+  .opp .logged{font-size:12px;color:var(--ok);font-weight:700;margin-top:8px;display:flex;align-items:center;gap:5px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;font-weight:700;font-size:13.5px;padding:10px 15px;cursor:pointer;transition:.15s}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:var(--brand);color:#fff}
+  .btn.ghost{background:var(--brand-soft);color:var(--brand-d)}
+  .btn.accent{background:var(--accent);color:#fff}
+  .btn.sm{padding:7px 12px;font-size:12.5px}
+  .btn.block{width:100%}
+
+  .log-entry{background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12.5px}
+  .log-entry .lh{display:flex;justify-content:space-between;font-weight:700;color:var(--brand-d)}
+  .log-entry .ll{color:var(--ink-soft);margin-top:3px}
+  .log-entry .ll b{color:var(--ink)}
+
+  /* Learn */
+  .learn-card{cursor:pointer}
+  .learn-card .lc-top{display:flex;align-items:center;gap:12px}
+  .learn-card .lc-ic{width:40px;height:40px;flex:0 0 auto;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--brand-soft)}
+  .learn-card .lc-t{font-weight:700;font-size:14.5px}
+  .learn-card .lc-s{font-size:12.5px;color:var(--ink-soft)}
+  .learn-card .lc-body{display:none;margin-top:12px;font-size:13.5px;line-height:1.6}
+  .learn-card.open .lc-body{display:block}
+  .learn-card .lc-body p{margin:0 0 10px}
+  .learn-card .lc-body ul{margin:0 0 10px;padding-left:20px}
+  .learn-card .lc-body li{margin-bottom:5px}
+  .learn-card .lc-body b{color:var(--brand-d)}
+  .learn-card .chev{margin-left:auto;color:var(--ink-soft);transition:.2s}
+  .learn-card.open .chev{transform:rotate(180deg)}
+
+  /* Motivate */
+  .why-card{background:linear-gradient(160deg,var(--brand-d),var(--brand));color:#fff;border:0}
+  .why-card h2{color:#fff}
+  .why-card .whytext{font-size:16px;line-height:1.55;font-style:italic;margin:8px 0 4px}
+  .why-card textarea{width:100%;border:0;border-radius:12px;padding:12px;font-size:15px;font-family:inherit;resize:vertical;min-height:90px;background:rgba(255,255,255,.14);color:#fff}
+  .why-card textarea::placeholder{color:rgba(255,255,255,.6)}
+  .quote{font-size:16px;line-height:1.55;font-weight:600}
+  .quote .qby{display:block;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--ink-soft)}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .stat{background:var(--bg);border-radius:12px;padding:12px;text-align:center}
+  .stat .v{font-size:22px;font-weight:800;color:var(--brand-d)}
+  .stat .l{font-size:11px;color:var(--ink-soft);margin-top:2px;line-height:1.25}
+  .countdown{display:flex;gap:10px}
+  .cd{flex:1;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:12px;text-align:center}
+  .cd .v{font-size:24px;font-weight:800}
+  .cd .l{font-size:11px;margin-top:2px;font-weight:600}
+  .fact{background:var(--gold-soft);color:var(--gold);border-radius:12px;padding:13px 15px;font-size:13.5px;font-weight:600;line-height:1.5}
+
+  /* Quiz */
+  .quiz-hero{background:linear-gradient(160deg,var(--brand-d),var(--brand));color:#fff;border:0}
+  .quiz-hero h2{color:#fff}
+  .streak-row{display:flex;gap:10px;margin-top:14px}
+  .streak-box{flex:1;background:rgba(255,255,255,.15);border-radius:12px;padding:12px;text-align:center}
+  .streak-box .v{font-size:24px;font-weight:800}
+  .streak-box .l{font-size:10.5px;margin-top:2px;opacity:.9;font-weight:600;letter-spacing:.3px}
+  .mrow{margin-bottom:11px}
+  .mrow .top{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:5px}
+  .mrow .top .nm{font-weight:700}
+  .mrow .top .lb{font-size:11.5px;color:var(--ink-soft);font-weight:700}
+  .mrow .track{height:9px;background:var(--line);border-radius:6px;overflow:hidden}
+  .mrow .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--brand),var(--brand-d));transition:width .4s}
+  .qprog{display:flex;gap:5px;margin-bottom:16px}
+  .qprog .d{height:6px;border-radius:3px;flex:1;background:var(--line)}
+  .qprog .d.on{background:var(--brand)}
+  .qprog .d.ok{background:var(--ok)}
+  .qprog .d.no{background:var(--accent)}
+  .q-subj{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .q-subj .qic{font-size:20px}
+  .q-subj .qn{font-weight:700;font-size:13px;color:var(--ink-soft)}
+  .q-text{font-size:18px;font-weight:700;line-height:1.4;margin-bottom:16px}
+  .opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:13px;padding:14px 15px;margin-bottom:10px;font-size:15px;font-family:inherit;color:var(--ink);cursor:pointer;transition:.12s}
+  .opt:active{transform:scale(.99)}
+  .opt.correct{border-color:var(--ok);background:rgba(46,158,107,.14);font-weight:700}
+  .opt.wrong{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+  .opt.dim{opacity:.5}
+  .opt[disabled]{cursor:default}
+  .expl{border-radius:13px;padding:13px 15px;margin:4px 0 16px;font-size:14px;line-height:1.55}
+  .expl.ok{background:rgba(46,158,107,.12)}
+  .expl.no{background:var(--accent-soft)}
+  .expl .eh{font-weight:800;display:block;margin-bottom:3px}
+  .expl.ok .eh{color:var(--ok)}
+  .expl.no .eh{color:var(--accent)}
+  .res-big{text-align:center;padding:8px 0 4px}
+  .res-big .score{font-size:44px;font-weight:800;color:var(--brand-d);line-height:1}
+  .res-big .of{font-size:16px;color:var(--ink-soft);font-weight:700;margin-top:4px}
+  .res-msg{text-align:center;font-size:15px;font-weight:600;margin:10px 0 4px}
+
+  /* Bottom nav */
+  nav.tabs{
+    position:fixed;bottom:0;left:0;right:0;z-index:50;
+    background:var(--card);border-top:1px solid var(--line);
+    display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+    box-shadow:0 -2px 16px rgba(20,40,36,.06);
+  }
+  nav.tabs button{
+    flex:1;background:0;border:0;padding:6px 2px;color:var(--ink-soft);
+    display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-family:inherit;
+  }
+  nav.tabs button .ti{width:24px;height:24px}
+  nav.tabs button .tl{font-size:9.5px;font-weight:700;letter-spacing:.1px}
+  nav.tabs button{padding-left:1px;padding-right:1px}
+  nav.tabs button .ti{width:22px;height:22px}
+  nav.tabs button.active{color:var(--brand)}
+  nav.tabs button.active .ti{transform:translateY(-1px)}
+
+  /* Modal */
+  .overlay{position:fixed;inset:0;background:rgba(15,25,23,.55);z-index:100;display:none;align-items:flex-end;justify-content:center}
+  .overlay.open{display:flex}
+  .sheet{background:var(--card);width:100%;max-width:640px;border-radius:22px 22px 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;animation:up .25s ease}
+  @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+  .sheet h2{margin:0 0 3px;font-size:18px}
+  .sheet .sh-sub{color:var(--ink-soft);font-size:13px;margin-bottom:14px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:5px;color:var(--ink-soft)}
+  .field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:15px;font-family:inherit;background:var(--bg);color:var(--ink)}
+  .field textarea{resize:vertical;min-height:64px}
+  .row2{display:flex;gap:10px}
+  .row2 .field{flex:1}
+  .grab{width:40px;height:4px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+  .link{color:var(--brand);font-weight:700;background:0;border:0;font-size:13.5px;cursor:pointer;padding:0;font-family:inherit}
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="halo"></div><div class="halo2"></div>
+  <button id="gear-btn" aria-label="Settings" onclick="openSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.2.62.76 1.05 1.42 1.09H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+  <h1>Paige — Road to Vet</h1>
+  <p class="sub">Massey Bachelor of Veterinary Science · the plan, step by step</p>
+  <div class="ring-row">
+    <div class="ring">
+      <svg width="74" height="74" viewBox="0 0 74 74">
+        <circle cx="37" cy="37" r="31" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="8"/>
+        <circle id="ring-fg" cx="37" cy="37" r="31" fill="none" stroke="#ffb4a2" stroke-width="8" stroke-linecap="round" stroke-dasharray="195" stroke-dashoffset="195"/>
+      </svg>
+      <div class="pct"><span id="ring-pct">0%</span><small>ON TRACK</small></div>
+    </div>
+    <div class="ring-meta">
+      <b id="ring-phase">Year 11 — Foundation</b>
+      <span class="m" id="ring-next">Next: choose your vet-pathway subjects</span>
+      <span class="m" id="ring-count">0 of 0 milestones ticked off</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- JOURNEY -->
+  <section class="view active" id="view-journey"></section>
+
+  <!-- STUDY -->
+  <section class="view" id="view-study">
+    <div class="yr-tabs" id="yr-tabs"></div>
+    <div id="study-body"></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="view" id="view-quiz"></section>
+
+  <!-- EXPERIENCE -->
+  <section class="view" id="view-exp">
+    <div class="card" style="background:linear-gradient(160deg,var(--brand-d),var(--brand));color:#fff;border:0">
+      <h2 style="color:#fff">Your unfair advantage</h2>
+      <p class="small" style="opacity:.9;margin:4px 0 0">Most vet applicants have never delivered a foal or seen an embryo transfer. You live it. Massey's interview rewards real hands-on animal experience — log every session here and turn it into your interview answers.</p>
+      <div class="countdown" style="margin-top:14px">
+        <div class="cd" style="background:rgba(255,255,255,.15);color:#fff"><div class="v" id="exp-hours">0</div><div class="l">HOURS LOGGED</div></div>
+        <div class="cd" style="background:rgba(255,255,255,.15);color:#fff"><div class="v" id="exp-entries">0</div><div class="l">SESSIONS</div></div>
+        <div class="cd" style="background:rgba(255,255,255,.15);color:#fff"><div class="v" id="exp-settings">0</div><div class="l">SETTINGS</div></div>
+      </div>
+    </div>
+    <div id="exp-body"></div>
+  </section>
+
+  <!-- LEARN -->
+  <section class="view" id="view-learn">
+    <div class="sec-title">Know the profession</div>
+    <div id="learn-body"></div>
+  </section>
+
+  <!-- MOTIVATE -->
+  <section class="view" id="view-me"></section>
+</main>
+
+<nav class="tabs" id="nav">
+  <button data-tab="journey" class="active">
+    <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5.5 2 1-6L1 12l6-1 2-6 2 6 6 1-3.5 4 1 6z" opacity="0"/><path d="M4 19V5a2 2 0 012-2h9l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+    <span class="tl">Journey</span>
+  </button>
+  <button data-tab="study">
+    <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h11a1 1 0 011 1v14a1 1 0 01-1 1H6a2 2 0 00-2 2z"/><path d="M4 19a2 2 0 012-2h12"/></svg>
+    <span class="tl">Study</span>
+  </button>
+  <button data-tab="quiz">
+    <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 00-4 12.7c.6.5 1 1.2 1 2v.3h6v-.3c0-.8.4-1.5 1-2A7 7 0 0012 2z"/></svg>
+    <span class="tl">Quiz</span>
+  </button>
+  <button data-tab="exp">
+    <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.5a2.5 2.5 0 013.5 2.3c1.4-.5 3 .2 3.5 1.7.5 1.5-.3 3-1.7 3.5M8 6.8A2.5 2.5 0 006.5 11c-1.4.5-2.2 2-1.7 3.5.5 1.5 2.1 2.2 3.5 1.7"/><circle cx="12" cy="14" r="4"/><path d="M12 18v2"/></svg>
+    <span class="tl">Hands-on</span>
+  </button>
+  <button data-tab="learn">
+    <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M6 10v5c0 1 2.5 3 6 3s6-2 6-3v-5"/></svg>
+    <span class="tl">Learn</span>
+  </button>
+  <button data-tab="me">
+    <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 6.6a5 5 0 00-7.1 0L12 8.3l-1.7-1.7a5 5 0 00-7.1 7.1L12 22l8.8-8.3a5 5 0 000-7.1z"/></svg>
+    <span class="tl">Motivate</span>
+  </button>
+</nav>
+
+<!-- Log experience modal -->
+<div class="overlay" id="log-overlay">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h2 id="log-title">Log a session</h2>
+    <div class="sh-sub" id="log-sub"></div>
+    <div class="row2">
+      <div class="field"><label>Date</label><input type="date" id="log-date"></div>
+      <div class="field"><label>Hours</label><input type="number" id="log-hours" min="0" step="0.5" placeholder="e.g. 2"></div>
+    </div>
+    <div class="field"><label>What did you do?</label><textarea id="log-did" placeholder="e.g. Helped draft the recip hinds and record ET tags"></textarea></div>
+    <div class="field"><label>What did you learn?</label><textarea id="log-learnt" placeholder="e.g. How embryos are graded before transfer"></textarea></div>
+    <div class="field"><label>What surprised you? <span class="muted">(great interview material)</span></label><textarea id="log-surprised" placeholder="Optional — the moment that stuck with you"></textarea></div>
+    <button class="btn primary block" id="log-save">Save session</button>
+    <div style="text-align:center;margin-top:12px"><button class="link" id="log-cancel">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="overlay" id="set-overlay">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h2>Settings</h2>
+    <div class="sh-sub">Sync &amp; coaching</div>
+    <div id="set-state"></div>
+    <div class="sync-note">Leave this blank and everything stays on this phone. Paste the sync link (from Dad) to back up Paige's progress and let her questions be topped up over time.</div>
+    <div class="field"><label>Sync link (Apps Script URL)</label><input type="text" id="set-endpoint" placeholder="https://script.google.com/macros/s/.../exec" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <button class="btn primary block" id="set-save">Save</button>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button class="btn ghost sm" style="flex:1" id="set-sync">Sync now</button>
+      <button class="btn ghost sm" style="flex:1" id="set-clear">Go local only</button>
+    </div>
+    <div style="text-align:center;margin-top:14px"><button class="link" id="set-cancel">Close</button></div>
+    <div class="tiny muted" style="text-align:center;margin-top:12px">Road to Vet · v1.3.0</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const K={ms:"pvp_milestones",subj:"pvp_subjects",exp:"pvp_experience",why:"pvp_why",learn:"pvp_learnread"};
+const load=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch(e){return f}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const todayISO=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const fmtDate=iso=>{if(!iso)return"";const[y,m,d]=iso.split("-");return d+"/"+m+"/"+y.slice(2)};
+const CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>';
+
+/* ---------- PATHWAY DATA ---------- */
+const PHASES=[
+  {id:"y11",title:"Year 11 — Foundation",year:"2026 · Age 15",ms:[
+    {id:"y11a",t:"Choose your vet-pathway subjects",d:"Science, Mathematics for STEM careers, English — plus subjects you'll score well in."},
+    {id:"y11b",t:"Lock in NCEA Level 1 literacy + numeracy",d:"You need these as the base for University Entrance later."},
+    {id:"y11c",t:"Write down your 'why'",d:"Open the Motivate tab and put it into words. It becomes your anchor."},
+    {id:"y11d",t:"Log your first hands-on animal session",d:"Fawning, an animal-health day, anything. Start the habit now."},
+    {id:"y11e",t:"Aim for a Merit or Excellence endorsement",d:"The high-marks habit is exactly what gets you selected at Massey."},
+  ]},
+  {id:"y12",title:"Year 12 — Build the sciences",year:"2027 · Age 16",ms:[
+    {id:"y12a",t:"Take Chemistry, Biology, Physics, Maths + English",d:"This is the full science load Massey points you toward."},
+    {id:"y12b",t:"Earn 14+ credits in NCEA Level 2 Physics",d:"A Massey recommended background subject."},
+    {id:"y12c",t:"Earn 14+ credits in NCEA Level 2 Maths",d:"Strong algebra makes senior Chemistry and Physics far easier."},
+    {id:"y12d",t:"Do a day at a small-animal vet clinic",d:"Broaden beyond the farm — shows you've chosen this with eyes open."},
+    {id:"y12e",t:"Earn a Level 2 Merit/Excellence endorsement",d:"Keep proving you can carry a heavy science load well."},
+  ]},
+  {id:"y13",title:"Year 13 — University Entrance",year:"2028 · Age 17",ms:[
+    {id:"y13a",t:"Take Level 3 Chemistry + Level 3 Biology",d:"14+ credits each — these are the required background for the pre-selection semester."},
+    {id:"y13b",t:"Add Level 3 Physics and/or Maths (Calculus)",d:"More science = better prepared for the first university papers."},
+    {id:"y13c",t:"Gain University Entrance",d:"NCEA L3 + three approved subjects (14 cr each) + 10 literacy (L2+) + 10 numeracy."},
+    {id:"y13d",t:"Reach 20+ logged experience hours, 2+ settings",d:"Farm + a clinic at least. Variety is what the interview panel looks for."},
+    {id:"y13e",t:"Apply to Massey's BVSc Pre-Selection semester",d:"Applications through Massey — get in early."},
+  ]},
+  {id:"pre",title:"Massey — Pre-Selection semester",year:"2029 · Age 18",ms:[
+    {id:"prea",t:"Enrol in the Vet Pre-Selection semester",d:"One semester at the Manawatū campus, starts late February — four prerequisite science papers."},
+    {id:"preb",t:"Pass all four prerequisite papers",d:"You must pass every one to be considered."},
+    {id:"prec",t:"Achieve a GPA of 5.0 or higher",d:"That's a solid B average. This is the academic bar for selection."},
+  ]},
+  {id:"sel",title:"Selection — Casper · STAT · MMI",year:"2029",ms:[
+    {id:"sela",t:"Sit the Casper assessment",d:"A 2-hour online situational-judgement test — how you reason through real scenarios."},
+    {id:"selb",t:"Sit the STAT assessment",d:"A 2-hour critical-thinking test."},
+    {id:"selc",t:"Complete the MMI",d:"Multiple Mini Interviews — eight 8-minute stations on values, ethics and communication."},
+    {id:"seld",t:"Receive your offer into the professional phase",d:"~133 domestic places, roughly 3–4 applicants each. You'll be ready."},
+  ]},
+  {id:"prof",title:"The professional phase",year:"2029–2034",ms:[
+    {id:"profa",t:"Start the 5-year professional phase",d:"The real vet degree begins — anatomy, physiology, clinical skills."},
+    {id:"profb",t:"Complete your clinical & EMS placements",d:"Extramural studies — real practice hours on farms and in clinics."},
+    {id:"profc",t:"Graduate with your BVSc",d:"Bachelor of Veterinary Science. You did it."},
+  ]},
+  {id:"reg",title:"Registered veterinarian",year:"~2034 · Age 23",ms:[
+    {id:"rega",t:"Register with the NZ Veterinary Council",d:"Officially Dr Paige — a working vet."},
+  ]},
+];
+const ALL_MS=PHASES.flatMap(p=>p.ms.map(m=>m.id));
+
+/* ---------- SUBJECTS ---------- */
+const YEARS=[
+  {key:"y11",label:"Year 11",tag:"2026 · NCEA Level 1",subjects:[
+    {ic:"S",n:"Science",d:"The core. It carries the Chemistry, Biology and Physics strands you'll split into next year.",tag:"req",tagl:"Essential"},
+    {ic:"M",n:"Mathematics for STEM careers",d:"The extension maths — hardest on algebra, which is the engine under senior Chemistry and Physics. The right pick for you.",tag:"req",tagl:"Essential"},
+    {ic:"E",n:"English",d:"For UE literacy credits — and vets live or die on communication (the whole interview side rewards it).",tag:"req",tagl:"Essential"},
+    {ic:"F",n:"Food & Nutrition",d:"Best tech option: touches biology, nutrition and food chemistry — and animal nutrition is core to vet work.",tag:"opt",tagl:"Recommended",opt:true},
+    {ic:"+",n:"Two more you'll ace",d:"Free-choice slots. Pick subjects you enjoy and can get Excellence in — high marks matter more than the subject.",tag:"opt",tagl:"Your call",opt:true},
+  ],note:"Aim for Merit or Excellence, and secure your Level 1 literacy + numeracy. ⚠ Check Geraldine's option lines unlock Level 2 Chemistry, Biology, Physics and Maths — some need a minimum Year 11 grade."},
+  {key:"y12",label:"Year 12",tag:"2027 · NCEA Level 2",subjects:[
+    {ic:"C",n:"Chemistry",d:"The foundation for Level 3 Chemistry, which Massey requires. Non-negotiable.",tag:"req",tagl:"Essential"},
+    {ic:"B",n:"Biology",d:"The foundation for Level 3 Biology, also required by Massey.",tag:"req",tagl:"Essential"},
+    {ic:"P",n:"Physics",d:"Massey wants 14+ credits of Level 2 Physics as background.",tag:"req",tagl:"14+ credits"},
+    {ic:"M",n:"Mathematics",d:"Take the algebra/calculus strand. Massey wants 14+ credits of Level 2 Maths.",tag:"req",tagl:"14+ credits"},
+    {ic:"E",n:"English",d:"Keeps your UE literacy and communication strong.",tag:"opt",tagl:"Recommended",opt:true},
+  ],note:"This is the full-strength science load. Aim for a Level 2 endorsement — carrying four sciences well is exactly what selection looks for."},
+  {key:"y13",label:"Year 13",tag:"2028 · NCEA Level 3",subjects:[
+    {ic:"C",n:"Chemistry (Level 3)",d:"Required background — 14+ credits. Do this well and the first university Chemistry paper feels like revision.",tag:"req",tagl:"Required · 14+ cr"},
+    {ic:"B",n:"Biology (Level 3)",d:"Required background — 14+ credits.",tag:"req",tagl:"Required · 14+ cr"},
+    {ic:"P",n:"Physics (Level 3)",d:"Recommended — the more science, the better prepared you are.",tag:"opt",tagl:"Recommended",opt:true},
+    {ic:"M",n:"Maths (Calculus / Statistics)",d:"Helps hugely with university stats, pharmacology and dosing maths.",tag:"opt",tagl:"Recommended",opt:true},
+    {ic:"+",n:"One more UE subject",d:"To complete University Entrance (three approved subjects at 14 credits each).",tag:"opt",tagl:"For UE",opt:true},
+  ],note:"Goal: full University Entrance. Aim for Excellence — the high-marks habit becomes the GPA ≥ 5.0 you need at Massey."},
+];
+
+/* ---------- EXPERIENCE OPPORTUNITIES ---------- */
+const OPPS=[
+  {id:"et",title:"Embryo Transfer (ET) programme",tag:"farm",tagl:"On farm",teaches:"Reproductive science up close — synchronising donor hinds/cows, flushing and grading embryos, preparing recipient (recip) animals, and the AI side.",why:"This is elite exposure. Most vet applicants have never seen ET — you'll be able to explain real reproductive technology in your interview."},
+  {id:"foal",title:"Foaling Bridgette",tag:"farm",tagl:"On farm",teaches:"The stages of foaling, the signs that labour is starting, when something's going wrong (dystocia), and newborn foal care in the first hours.",why:"Assisting a birth is a standout experience. Write down exactly what you noticed — panels love a candidate who has been there at 2am."},
+  {id:"fawn",title:"Fawning season (deer)",tag:"farm",tagl:"On farm",teaches:"Calm stock handling, spotting a hind in trouble, mismothering, and newborn fawn health.",why:"Shows you understand a whole species' breeding cycle, not just pet care."},
+  {id:"calve",title:"Calving the beef cows",tag:"farm",tagl:"On farm",teaches:"Normal vs difficult calvings, when to step in, colostrum and the newborn calf's first day.",why:"Large-animal birth experience — directly relevant to production-animal vet work."},
+  {id:"health",title:"Animal-health days",tag:"farm",tagl:"On farm",teaches:"Drenching, vaccinating, body-condition scoring, TB testing and velvet removal (vet-supervised). How to read a healthy vs off animal.",why:"Hands-on husbandry is the daily reality of a rural vet. Note the products and why they're used."},
+  {id:"vetday",title:"Shadow the farm vet",tag:"farm",tagl:"On farm",teaches:"How a vet examines stock, makes a diagnosis, chooses a treatment and explains it to the farmer.",why:"Seeing the vet at work on your own farm is the single best window into the job. Ask them questions."},
+  {id:"clinic",title:"Small-animal vet clinic day",tag:"clinic",tagl:"Clinic",teaches:"Consults, vaccinations, surgery prep, and — importantly — how vets talk to worried owners.",why:"Balances your farm experience with companion-animal work. Arrange a day or a week in the school holidays (Geraldine or Timaru)."},
+  {id:"broaden",title:"Broaden it — SPCA · dairy · equine",tag:"broaden",tagl:"Broaden",teaches:"Different animals, different settings, different welfare challenges.",why:"Variety proves you've explored the profession widely before committing — a real strength at interview."},
+];
+const SETTINGS={farm:"Farm",clinic:"Clinic",broaden:"Other"};
+
+/* ---------- LEARN CARDS ---------- */
+const LEARN=[
+  {id:"path",ic:"🧭",t:"The Massey pathway, explained",s:"How you actually get in",body:`
+    <p>Massey (Palmerston North) is the <b>only vet school in New Zealand</b>, so it's competitive — around <b>133 domestic places</b> and roughly <b>3–4 applicants for every place</b>. You don't get in straight from school. The route is:</p>
+    <ul>
+      <li><b>1. School</b> — gain University Entrance with Level 3 Chemistry and Biology (and ideally Physics + Maths).</li>
+      <li><b>2. Pre-Selection semester</b> — one semester at Massey (starts late February), four prerequisite science papers.</li>
+      <li><b>3. Selection</b> — based on your <b>GPA (must be 5.0+)</b>, passing every prerequisite, plus the <b>Casper</b>, <b>STAT</b> and <b>MMI</b> assessments.</li>
+      <li><b>4. Professional phase</b> — the 5-year vet degree.</li>
+    </ul>
+    <p>So the real academic filter is Level 3 and that first university semester. Your job now is to build a science base so strong that the pre-selection papers feel like revision.</p>`},
+  {id:"casper",ic:"💬",t:"What is Casper?",s:"The situational-judgement test",body:`
+    <p><b>Casper</b> is a 2-hour online test. It shows you short real-life scenarios and asks how you'd respond. It isn't testing animal facts — it's testing your <b>judgement, empathy, ethics and communication</b>.</p>
+    <p>How to prepare:</p>
+    <ul>
+      <li>Practise explaining <b>why</b> you'd do something, not just what.</li>
+      <li>Always consider every person affected in a situation.</li>
+      <li>Your real experiences — a tough call on farm, helping a stressed animal owner — are perfect material.</li>
+    </ul>`},
+  {id:"mmi",ic:"🎤",t:"The MMI interview",s:"Eight 8-minute stations",body:`
+    <p>The <b>Multiple Mini Interview</b> is eight short structured interviews, each about 8 minutes (around an hour total). You move station to station, each a fresh scenario or question.</p>
+    <p>It rewards:</p>
+    <ul>
+      <li><b>Clear communication</b> — think out loud, stay calm.</li>
+      <li><b>Values and ethics</b> — there's rarely one "right" answer; they want your reasoning.</li>
+      <li><b>Real experience</b> — this is where your logged farm and clinic sessions pay off. Have your stories ready.</li>
+    </ul>
+    <p>Every reflection you write in the Experience tab is MMI practice in disguise.</p>`},
+  {id:"day",ic:"🩺",t:"A day in the life",s:"What vets actually do",body:`
+    <p>Vet work is far more varied than "cuddling animals":</p>
+    <ul>
+      <li><b>Production-animal / mixed vet</b> — herd health, calvings and lambings, disease investigation, on-farm surgery, advising farmers. Early starts, all weather. This is your world already.</li>
+      <li><b>Companion-animal vet</b> — consults, vaccinations, surgery, dentistry, and a lot of talking with worried owners.</li>
+      <li><b>Equine</b> — lameness, dentistry, reproduction, emergencies.</li>
+      <li><b>Other paths</b> — wildlife and conservation, pathology and research, and government biosecurity (keeping NZ free of new diseases).</li>
+    </ul>`},
+  {id:"hard",ic:"❤️",t:"The hard parts — eyes open",s:"What no one tells you at 15",body:`
+    <p>Choosing this with eyes open is a strength, not a worry. The realities:</p>
+    <ul>
+      <li><b>Euthanasia</b> — ending suffering is part of the job. It's a kindness, but it's hard.</li>
+      <li><b>Tough conversations</b> — cost, grief, bad news. Communication is half the job.</li>
+      <li><b>Long, physical hours</b> — especially rural and on-call work.</li>
+      <li><b>Looking after yourself</b> — vets carry a lot, so building resilience and support matters.</li>
+    </ul>
+    <p>Understanding this now — and still wanting it — is exactly what the interview panel is listening for.</p>`},
+  {id:"farmkid",ic:"🦌",t:"Why farm kids make great vets",s:"Your head start",body:`
+    <p>Growing up on Peel Forest Estate has already given you things most applicants spend years trying to get:</p>
+    <ul>
+      <li><b>Real stock sense</b> — you can read an animal and handle it calmly.</li>
+      <li><b>Birth and breeding</b> — fawning, calving, ET, foaling. Genuine reproductive experience.</li>
+      <li><b>Animal health</b> — you've seen drenching, vaccinating, treatment decisions.</li>
+      <li><b>Work ethic and early starts</b> — the exact temperament rural vet work needs.</li>
+    </ul>
+    <p>Don't take it for granted — <b>log it, reflect on it, and talk about it</b>. It's your edge.</p>`},
+  {id:"study",ic:"📚",t:"How to smash NCEA sciences",s:"Marks that become your GPA",body:`
+    <p>Your Level 3 marks train the exact skill Massey selects on — a high GPA. A few things that work:</p>
+    <ul>
+      <li><b>Stay on top of Maths.</b> Weak algebra is the #1 reason capable students struggle in Chemistry and Physics.</li>
+      <li><b>Aim for Excellence, not just Achieved.</b> Learn the "explain and justify" level, not just the facts.</li>
+      <li><b>Do past papers early</b> — they show you exactly how questions are marked.</li>
+      <li><b>Ask for help fast</b> when something doesn't click. Compounding gaps are the enemy.</li>
+    </ul>`},
+  {id:"plan",ic:"🌱",t:"If not straight in — a smart Plan B",s:"Same subjects, more doors",body:`
+    <p>One vet school and tight numbers means it's worth having a backup that uses the <b>same</b> science subjects:</p>
+    <ul>
+      <li><b>Animal Science</b> (Massey / Lincoln) — many students re-apply to vet from here.</li>
+      <li><b>Veterinary Technology / Nursing</b> — hands-on animal-health careers.</li>
+      <li><b>Biomedical Science</b> — strong science base, many pathways.</li>
+      <li><b>Australian vet schools</b> — another route to the same career.</li>
+    </ul>
+    <p>The Year 11–13 plan in this app keeps every one of these open. Aim high — there's no downside.</p>`},
+];
+
+/* ---------- MOTIVATION ---------- */
+const QUOTES=[
+  ["The animals of the world exist for their own reasons.","Alice Walker"],
+  ["Until one has loved an animal, a part of one's soul remains unawakened.","Anatole France"],
+  ["Start where you are. Use what you have. Do what you can.","Arthur Ashe"],
+  ["The expert in anything was once a beginner.","Helen Hayes"],
+  ["Saving one animal won't change the world, but it will change the world for that one animal.","Unknown"],
+  ["Hard work beats talent when talent doesn't work hard.","Tim Notke"],
+  ["Believe you can and you're halfway there.","Theodore Roosevelt"],
+  ["The best way to find out if you can do something is to do it.","Unknown"],
+  ["A little progress each day adds up to big results.","Unknown"],
+  ["Being a vet is being a doctor, a surgeon, and a friend to those who can't speak.","Unknown"],
+];
+const FACTS=[
+  "A horse's heart weighs around 4–5 kg and beats about 28–40 times a minute at rest.",
+  "In embryo transfer, one prize hind's genetics can produce many calves in a season through recipient females.",
+  "Cattle have almost 360° vision — a big reason calm, quiet handling works so well.",
+  "A cow's normal temperature is about 38.5°C; deer sit a touch higher.",
+  "Vets treat everything from a 2 g finch to a 4-tonne elephant — no other doctor covers that range.",
+  "A newborn foal can usually stand within an hour and run within a day.",
+  "Deer velvet regrows every year — it's one of the fastest-growing tissues in the animal kingdom.",
+  "A dog's sense of smell is tens of thousands of times sharper than a human's.",
+  "Colostrum — the first milk — gives a newborn its whole starting immune system. Timing is everything.",
+  "New Zealand has just one vet school, so every Kiwi vet is a Massey graduate.",
+];
+const AFFIRM=[
+  "You're not just dreaming this — you're building it, one subject at a time.",
+  "Every animal you help on the farm is a step toward the coat you'll wear one day.",
+  "The girl who logs her hours becomes the vet who gets the place.",
+  "Strong in Maths, strong in science, strong in heart — that's the whole recipe.",
+  "You already know things most applicants have to learn. Keep going.",
+];
+
+/* ---------- STATE ---------- */
+let msState=load(K.ms,{});
+let subjState=load(K.subj,{});
+let expLog=load(K.exp,[]);
+let whyText=load(K.why,"");
+let learnRead=load(K.learn,{});
+let activeYear="y11";
+let logOppId=null;
+
+/* ---------- PROGRESS ---------- */
+function doneCount(){return ALL_MS.filter(id=>msState[id]).length}
+function currentPhase(){
+  for(const p of PHASES){ if(p.ms.some(m=>!msState[m.id])) return p; }
+  return PHASES[PHASES.length-1];
+}
+function nextMilestone(){
+  for(const p of PHASES){ for(const m of p.ms){ if(!msState[m.id]) return m; } }
+  return null;
+}
+function refreshHeader(){
+  const done=doneCount(), total=ALL_MS.length, pct=Math.round(done/total*100);
+  const circ=2*Math.PI*31;
+  $("ring-fg").style.strokeDasharray=circ;
+  $("ring-fg").style.strokeDashoffset=circ*(1-done/total);
+  $("ring-pct").textContent=pct+"%";
+  const ph=currentPhase(); const nm=nextMilestone();
+  $("ring-phase").textContent=ph.title;
+  $("ring-next").textContent=nm?("Next: "+nm.t):"Every milestone ticked — incredible.";
+  $("ring-count").textContent=done+" of "+total+" milestones ticked off";
+}
+
+/* ---------- JOURNEY ---------- */
+function renderJourney(){
+  const el=$("view-journey");
+  let h='<div class="card"><h2>Your journey to Dr Paige</h2><p class="small muted" style="margin:4px 0 0">Tick each milestone as you reach it. The ring up top fills as you go. This is the whole plan — from choosing subjects this year to registering as a vet.</p></div>';
+  PHASES.forEach(p=>{
+    const total=p.ms.length, done=p.ms.filter(m=>msState[m.id]).length;
+    const allDone=done===total, started=done>0;
+    const cls=allDone?"done":(started?"":"future");
+    h+='<div class="phase"><div class="phase-head"><div class="phase-dot '+cls+'">'+(allDone?'✓':(done+'/'+total))+'</div><div><div class="pt">'+p.title+'</div><div class="py">'+p.year+'</div></div></div>';
+    h+='<div class="timeline">';
+    p.ms.forEach(m=>{
+      const d=msState[m.id]?"done":"";
+      h+='<div class="ms '+d+'"><label><span onclick="toggleMs(\''+m.id+'\')" class="box">'+CHECK+'</span><span onclick="toggleMs(\''+m.id+'\')"><span class="mt">'+m.t+'</span><span class="md">'+m.d+'</span></span></label></div>';
+    });
+    h+='</div></div>';
+  });
+  el.innerHTML=h;
+}
+function toggleMs(id){ msState[id]=!msState[id]; save(K.ms,msState); renderJourney(); refreshHeader(); schedulePush(); }
+
+/* ---------- STUDY ---------- */
+function renderYearTabs(){
+  $("yr-tabs").innerHTML=YEARS.map(y=>'<button class="yr-tab'+(y.key===activeYear?' active':'')+'" onclick="setYear(\''+y.key+'\')">'+y.label+'</button>').join('');
+}
+function setYear(k){activeYear=k;renderYearTabs();renderStudy();}
+function renderStudy(){
+  const y=YEARS.find(x=>x.key===activeYear);
+  let h='<div class="card"><div class="small muted" style="font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:11px">'+y.tag+'</div><h2 style="margin-top:4px">Recommended subjects</h2>';
+  y.subjects.forEach(s=>{
+    h+='<div class="subj"><div class="ic'+(s.opt?' opt':'')+'">'+s.ic+'</div><div><div class="n">'+s.n+'</div><div class="d">'+s.d+'</div><span class="pill '+(s.tag==='req'?'req':'broaden')+' tag">'+s.tagl+'</span></div></div>';
+  });
+  h+='<div class="callout'+(y.note.indexOf('⚠')>=0?' warn':'')+'" style="margin-top:14px">'+y.note+'</div></div>';
+  if(activeYear==="y13"){
+    h+='<div class="card"><h3>University Entrance — the checklist</h3><div class="subj"><div class="ic">✓</div><div><div class="n">NCEA Level 3</div></div></div><div class="subj"><div class="ic">✓</div><div><div class="n">Three approved subjects</div><div class="d">14 credits in each.</div></div></div><div class="subj"><div class="ic">✓</div><div><div class="n">Literacy — 10 credits</div><div class="d">At Level 2 or above (5 reading, 5 writing).</div></div></div><div class="subj"><div class="ic">✓</div><div><div class="n">Numeracy — 10 credits</div><div class="d">At Level 1 or above.</div></div></div></div>';
+  }
+  h+='<div class="card" style="background:var(--brand-soft);border:0"><h3 style="color:var(--brand-d)">Massey wants to see</h3><p class="small" style="margin:4px 0 0;color:var(--brand-d)">14+ credits <b>NCEA Level 3 Biology</b> · 14+ credits <b>NCEA Level 3 Chemistry</b> · 14+ credits <b>NCEA Level 2 Physics</b> · 14+ credits <b>NCEA Level 2 Maths</b>. The more science and maths, the better prepared you are.</p></div>';
+  $("study-body").innerHTML=h;
+}
+
+/* ---------- EXPERIENCE ---------- */
+function renderExp(){
+  let hours=0; const settingsUsed=new Set();
+  expLog.forEach(e=>{hours+=parseFloat(e.hours)||0; const o=OPPS.find(o=>o.id===e.oppId); if(o)settingsUsed.add(o.tag);});
+  $("exp-hours").textContent=hours%1===0?hours:hours.toFixed(1);
+  $("exp-entries").textContent=expLog.length;
+  $("exp-settings").textContent=settingsUsed.size;
+  let h="";
+  OPPS.forEach(o=>{
+    const logs=expLog.filter(e=>e.oppId===o.id).sort((a,b)=>b.date<a.date?-1:1);
+    const oh=logs.reduce((s,e)=>s+(parseFloat(e.hours)||0),0);
+    h+='<div class="card"><div class="opp" style="padding-top:0;border-bottom:0"><div class="opp-top"><div class="title">'+o.title+'</div><span class="pill '+o.tag+'">'+o.tagl+'</span></div>';
+    h+='<div class="teaches">'+o.teaches+'</div><div class="why"><b>Why it counts:</b> '+o.why+'</div>';
+    if(logs.length){ h+='<div class="logged">✓ '+logs.length+' session'+(logs.length>1?'s':'')+' · '+(oh%1===0?oh:oh.toFixed(1))+'h logged</div>'; }
+    logs.forEach(e=>{
+      h+='<div class="log-entry"><div class="lh"><span>'+fmtDate(e.date)+'</span><span>'+(e.hours||0)+'h</span></div>';
+      if(e.did)h+='<div class="ll"><b>Did:</b> '+esc(e.did)+'</div>';
+      if(e.learnt)h+='<div class="ll"><b>Learnt:</b> '+esc(e.learnt)+'</div>';
+      if(e.surprised)h+='<div class="ll"><b>Surprised me:</b> '+esc(e.surprised)+'</div>';
+      h+='<div style="margin-top:6px"><button class="link" style="color:var(--accent)" onclick="delLog('+e.id+')">Delete</button></div></div>';
+    });
+    h+='<button class="btn ghost sm block" style="margin-top:12px" onclick="openLog(\''+o.id+'\')">+ Log a session</button>';
+    h+='</div></div>';
+  });
+  $("exp-body").innerHTML=h;
+}
+function esc(s){return String(s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))}
+function openLog(id){
+  logOppId=id; const o=OPPS.find(o=>o.id===id);
+  $("log-title").textContent=o.title;
+  $("log-sub").textContent="Log what you did — it becomes your interview story.";
+  $("log-date").value=todayISO(); $("log-hours").value=""; $("log-did").value=""; $("log-learnt").value=""; $("log-surprised").value="";
+  $("log-overlay").classList.add("open");
+}
+function closeLog(){$("log-overlay").classList.remove("open");}
+function saveLog(){
+  const e={id:Date.now(),oppId:logOppId,date:$("log-date").value||todayISO(),hours:$("log-hours").value||0,
+    did:$("log-did").value.trim(),learnt:$("log-learnt").value.trim(),surprised:$("log-surprised").value.trim()};
+  expLog.push(e); save(K.exp,expLog); closeLog(); renderExp();
+  // auto-tick the first-session milestone
+  if(!msState.y11d){msState.y11d=true;save(K.ms,msState);renderJourney();refreshHeader();}
+  schedulePush();
+}
+function delLog(id){ expLog=expLog.filter(e=>e.id!==id); save(K.exp,expLog); renderExp(); schedulePush(); }
+
+/* ---------- LEARN ---------- */
+function renderLearn(){
+  $("learn-body").innerHTML=LEARN.map(c=>
+    '<div class="card learn-card'+(learnRead[c.id]?' read':'')+'" onclick="toggleLearn(this,\''+c.id+'\')"><div class="lc-top"><div class="lc-ic">'+c.ic+'</div><div><div class="lc-t">'+c.t+'</div><div class="lc-s">'+c.s+'</div></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div><div class="lc-body">'+c.body+'</div></div>'
+  ).join('');
+}
+function toggleLearn(el,id){ el.classList.toggle("open"); if(!learnRead[id]){learnRead[id]=true;save(K.learn,learnRead);} }
+
+/* ---------- MOTIVATE ---------- */
+function dayIndex(){const d=new Date();return Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);}
+function daysUntil(y,m,d){const t=new Date(y,m-1,d)-new Date();return Math.max(0,Math.ceil(t/864e5));}
+function renderMe(){
+  const di=dayIndex();
+  const q=QUOTES[di%QUOTES.length], f=FACTS[di%FACTS.length], a=AFFIRM[di%AFFIRM.length];
+  let hours=0; expLog.forEach(e=>hours+=parseFloat(e.hours)||0);
+  const done=doneCount();
+  const refl=expLog.filter(e=>e.did||e.learnt||e.surprised).length;
+  const dEndY11=daysUntil(2026,12,1), dMassey=daysUntil(2029,2,23);
+  let h='';
+  h+='<div class="card why-card"><h2>Why I want to be a vet</h2>';
+  if(whyText){ h+='<div class="whytext">"'+esc(whyText)+'"</div><button class="link" style="color:#ffb4a2" onclick="editWhy()">Edit</button>'; }
+  else { h+='<p class="small" style="opacity:.9;margin:4px 0 10px">Put it into your own words. On the hard days, this is what you\'ll come back to.</p><textarea id="why-input" placeholder="I want to be a vet because..."></textarea><button class="btn accent block" style="margin-top:10px" onclick="saveWhy()">Save my why</button>'; }
+  h+='</div>';
+  h+='<div class="card"><h3>How far you\'ve come</h3><div class="stat-grid" style="margin-top:10px"><div class="stat"><div class="v">'+done+'</div><div class="l">milestones done</div></div><div class="stat"><div class="v">'+(hours%1===0?hours:hours.toFixed(1))+'</div><div class="l">experience hours</div></div><div class="stat"><div class="v">'+refl+'</div><div class="l">reflections written</div></div></div></div>';
+  h+='<div class="card"><h3>Counting down</h3><div class="countdown" style="margin-top:10px"><div class="cd"><div class="v">'+dEndY11+'</div><div class="l">DAYS TO END OF YEAR 11</div></div><div class="cd"><div class="v">'+dMassey+'</div><div class="l">DAYS TO MASSEY</div></div></div></div>';
+  h+='<div class="card"><div class="quote">"'+q[0]+'"<span class="qby">— '+q[1]+'</span></div></div>';
+  h+='<div class="card" style="background:var(--accent-soft);border:0"><div class="small" style="font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);font-size:11px">For you, today</div><p style="margin:6px 0 0;font-size:15px;font-weight:600;color:var(--accent);line-height:1.5">'+a+'</p></div>';
+  h+='<div class="sec-title">Vet fact of the day</div><div class="fact">'+f+'</div>';
+  h+='<div style="height:8px"></div>';
+  $("view-me").innerHTML=h;
+}
+function saveWhy(){const v=$("why-input").value.trim();if(!v)return;whyText=v;save(K.why,whyText);if(!msState.y11c){msState.y11c=true;save(K.ms,msState);renderJourney();refreshHeader();}renderMe();schedulePush();}
+function editWhy(){whyText="";save(K.why,whyText);renderMe();$("why-input")&&$("why-input").focus();}
+
+/* ---------- QUIZ (adaptive daily teaching) ---------- */
+const SUBJ_META=[
+  {k:"bio",n:"Biology",ic:"🧬"},
+  {k:"chem",n:"Chemistry",ic:"⚗️"},
+  {k:"phys",n:"Physics",ic:"⚡"},
+  {k:"vet",n:"Vet & Animal",ic:"🐾"},
+  {k:"math",n:"Vet Maths",ic:"🔢"},
+];
+const SUBJ_NAME={bio:"Biology",chem:"Chemistry",phys:"Physics",vet:"Vet & Animal",math:"Vet Maths"};
+const SUBJ_IC={bio:"🧬",chem:"⚗️",phys:"⚡",vet:"🐾",math:"🔢"};
+const QUIZ=[
+  // BIOLOGY
+  {id:"bio1",subj:"bio",lvl:1,q:"What is the basic building block of all living things?",o:["The cell","The atom","The organ","The molecule"],a:0,ex:"Every living thing is made of one or more cells — the smallest unit that can carry out life's processes."},
+  {id:"bio2",subj:"bio",lvl:1,q:"Which part of an animal cell contains the DNA and controls the cell?",o:["Cytoplasm","Nucleus","Cell membrane","Mitochondria"],a:1,ex:"The nucleus holds the DNA — the instructions — and directs everything the cell does."},
+  {id:"bio3",subj:"bio",lvl:1,q:"Which gas do animals breathe OUT?",o:["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"],a:2,ex:"Animals take in oxygen and release carbon dioxide, a waste product of respiration."},
+  {id:"bio4",subj:"bio",lvl:1,q:"Diffusion is the movement of particles from…",o:["Low to high concentration","High to low concentration","Cold to hot","Solid to gas"],a:1,ex:"Particles spread from where there are lots of them to where there are fewer — high to low concentration."},
+  {id:"bio5",subj:"bio",lvl:1,q:"Which cell part releases energy from food (respiration)?",o:["Nucleus","Ribosome","Mitochondria","Chloroplast"],a:2,ex:"Mitochondria are the cell's powerhouses — they release energy the animal can use."},
+  {id:"bio6",subj:"bio",lvl:2,q:"Enzymes are best described as biological…",o:["Fuels","Catalysts","Wastes","Hormones"],a:1,ex:"Enzymes are catalysts — they speed up reactions in the body without being used up."},
+  {id:"bio7",subj:"bio",lvl:2,q:"Which protein in red blood cells carries oxygen?",o:["Keratin","Insulin","Haemoglobin","Collagen"],a:2,ex:"Haemoglobin binds oxygen in the lungs and releases it around the body — it's what makes blood red."},
+  {id:"bio8",subj:"bio",lvl:2,q:"Blood vessels that carry blood AWAY from the heart are…",o:["Veins","Arteries","Capillaries","Valves"],a:1,ex:"Arteries carry blood away from the heart (A = Away). Veins bring it back."},
+  {id:"bio9",subj:"bio",lvl:2,q:"In a food chain, organisms that make their own food are called…",o:["Consumers","Decomposers","Producers","Predators"],a:2,ex:"Producers (like grass) make their own food by photosynthesis — they start every food chain."},
+  {id:"bio10",subj:"bio",lvl:2,q:"Meiosis produces sex cells with how many sets of chromosomes?",o:["Double the normal","The normal number","Half the normal number","None"],a:2,ex:"Meiosis halves the chromosomes (haploid) so that fertilisation restores the full number."},
+  {id:"bio11",subj:"bio",lvl:3,q:"A recessive allele is only shown in the animal's appearance when…",o:["One copy is present","Two copies are present","It is dominant","It is on the Y chromosome"],a:1,ex:"A recessive trait needs two recessive alleles (homozygous). One dominant allele would mask it."},
+  {id:"bio12",subj:"bio",lvl:3,q:"Crossing two AaBb parents gives which phenotype ratio?",o:["3:1","1:1:1:1","9:3:3:1","1:2:1"],a:2,ex:"A dihybrid cross of two heterozygotes gives the classic 9:3:3:1 ratio."},
+  {id:"bio13",subj:"bio",lvl:3,q:"Negative feedback in the body works to…",o:["Speed up the change","Reverse the change back to normal","Stop all reactions","Copy DNA"],a:1,ex:"Negative feedback counteracts a change to return the body to its set point — e.g. cooling down when too hot."},
+  {id:"bio14",subj:"bio",lvl:3,q:"Which enzyme unzips the DNA double helix during replication?",o:["Helicase","Amylase","Lipase","Protease"],a:0,ex:"Helicase unwinds and separates the two DNA strands so each can be copied."},
+  // CHEMISTRY
+  {id:"chem1",subj:"chem",lvl:1,q:"What is the smallest particle of an element?",o:["A molecule","An atom","A compound","A cell"],a:1,ex:"An atom is the smallest particle of an element that still has its properties."},
+  {id:"chem2",subj:"chem",lvl:1,q:"Which particle in the nucleus has a positive charge?",o:["Electron","Neutron","Proton","Ion"],a:2,ex:"Protons are positive, neutrons are neutral, and electrons (outside the nucleus) are negative."},
+  {id:"chem3",subj:"chem",lvl:1,q:"What is the pH of a neutral solution like pure water?",o:["0","7","10","14"],a:1,ex:"pH 7 is neutral. Below 7 is acidic, above 7 is basic (alkaline)."},
+  {id:"chem4",subj:"chem",lvl:1,q:"What is the chemical symbol for sodium?",o:["So","Sd","Na","Sm"],a:2,ex:"Sodium's symbol is Na, from its Latin name 'natrium'."},
+  {id:"chem5",subj:"chem",lvl:1,q:"A substance made of two or more elements chemically joined is a…",o:["Mixture","Compound","Element","Solution"],a:1,ex:"A compound has elements chemically bonded in fixed ratios — like water, H₂O."},
+  {id:"chem6",subj:"chem",lvl:2,q:"The number of protons in an atom is its…",o:["Mass number","Atomic number","Charge","Valency"],a:1,ex:"The atomic number equals the number of protons and identifies the element."},
+  {id:"chem7",subj:"chem",lvl:2,q:"A metal reacting with an acid produces a salt and…",o:["Oxygen","Water","Hydrogen","Carbon dioxide"],a:2,ex:"Metal + acid → salt + hydrogen gas (you can hear it fizz)."},
+  {id:"chem8",subj:"chem",lvl:2,q:"Ionic bonds form between…",o:["Two non-metals","A metal and a non-metal","Two metals","Two gases"],a:1,ex:"In ionic bonding a metal gives electrons to a non-metal, forming charged ions that attract."},
+  {id:"chem9",subj:"chem",lvl:2,q:"An acid is a substance that donates which ion?",o:["OH⁻ (hydroxide)","H⁺ (hydrogen)","Na⁺ (sodium)","Cl⁻ (chloride)"],a:1,ex:"Acids donate H⁺ ions (protons). Bases accept them or donate OH⁻."},
+  {id:"chem10",subj:"chem",lvl:2,q:"Oxidation is the ______ of electrons.",o:["Loss","Gain","Sharing","Storing"],a:0,ex:"Remember OIL RIG: Oxidation Is Loss, Reduction Is Gain (of electrons)."},
+  {id:"chem11",subj:"chem",lvl:3,q:"A catalyst speeds up a reaction by…",o:["Raising the temperature","Lowering the activation energy","Adding more reactant","Removing product"],a:1,ex:"A catalyst provides an easier pathway — it lowers the activation energy needed to react."},
+  {id:"chem12",subj:"chem",lvl:3,q:"In an exothermic reaction, energy is…",o:["Absorbed from surroundings","Released to surroundings","Destroyed","Created"],a:1,ex:"Exothermic reactions release energy (usually heat) — the surroundings warm up."},
+  {id:"chem13",subj:"chem",lvl:3,q:"One mole contains about 6.02 × 10²³ particles. This number is…",o:["Planck's constant","Avogadro's number","The atomic mass","The gas constant"],a:1,ex:"Avogadro's number (6.02 × 10²³) is the count of particles in one mole."},
+  {id:"chem14",subj:"chem",lvl:3,q:"A covalent bond involves…",o:["Transfer of electrons","A shared pair of electrons","Loss of protons","Attraction of ions"],a:1,ex:"Covalent bonds share electron pairs between non-metal atoms."},
+  // PHYSICS
+  {id:"phys1",subj:"phys",lvl:1,q:"What is the unit of force?",o:["Joule","Watt","Newton","Volt"],a:2,ex:"Force is measured in newtons (N), named after Isaac Newton."},
+  {id:"phys2",subj:"phys",lvl:1,q:"Speed is calculated as distance divided by…",o:["Time","Mass","Force","Area"],a:0,ex:"Speed = distance ÷ time. E.g. 100 m in 20 s = 5 m/s."},
+  {id:"phys3",subj:"phys",lvl:1,q:"The force that pulls objects towards the Earth is…",o:["Friction","Gravity","Magnetism","Tension"],a:1,ex:"Gravity pulls masses together — on Earth it gives objects their weight."},
+  {id:"phys4",subj:"phys",lvl:1,q:"Energy an object has because it is moving is called…",o:["Potential energy","Kinetic energy","Heat energy","Chemical energy"],a:1,ex:"Kinetic energy is the energy of motion — the faster and heavier, the more it has."},
+  {id:"phys5",subj:"phys",lvl:2,q:"Work done equals force multiplied by…",o:["Time","Distance moved","Mass","Speed"],a:1,ex:"Work = force × distance (in the direction of the force). Its unit is the joule."},
+  {id:"phys6",subj:"phys",lvl:2,q:"Ohm's law is written as…",o:["V = I × R","F = m × a","E = m × c²","P = V × I"],a:0,ex:"Voltage = current × resistance (V = IR) describes how electricity flows in a circuit."},
+  {id:"phys7",subj:"phys",lvl:2,q:"The unit of power is the…",o:["Newton","Joule","Watt","Ohm"],a:2,ex:"Power (energy used per second) is measured in watts (W). 1 W = 1 joule per second."},
+  {id:"phys8",subj:"phys",lvl:3,q:"Momentum is calculated as mass multiplied by…",o:["Velocity","Acceleration","Force","Height"],a:0,ex:"Momentum = mass × velocity. It's why a heavy, fast animal is hard to stop."},
+  {id:"phys9",subj:"phys",lvl:3,q:"The kinetic energy of a moving object is given by…",o:["mgh","½mv²","m × a","V × I"],a:1,ex:"Kinetic energy = ½ × mass × velocity². Doubling speed quadruples the energy."},
+  {id:"phys10",subj:"phys",lvl:3,q:"In a closed system, the total amount of energy is…",o:["Always increasing","Always decreasing","Conserved (stays the same)","Zero"],a:2,ex:"Energy can't be created or destroyed, only changed from one form to another — conservation of energy."},
+  // VET & ANIMAL SCIENCE
+  {id:"vet1",subj:"vet",lvl:1,q:"Why is colostrum (the first milk) so important to a newborn?",o:["It tastes sweet","It gives antibodies for immunity","It is low in fat","It cools the animal"],a:1,ex:"Colostrum is packed with antibodies that give the newborn its first immune protection — timing is critical."},
+  {id:"vet2",subj:"vet",lvl:1,q:"How many stomach compartments does a ruminant (cow, deer, sheep) have?",o:["One","Two","Four","Six"],a:2,ex:"Ruminants have four: rumen, reticulum, omasum and abomasum — letting them digest grass."},
+  {id:"vet3",subj:"vet",lvl:1,q:"Which of these animals is a ruminant?",o:["Horse","Dog","Cattle","Pig"],a:2,ex:"Cattle are ruminants. Horses, dogs and pigs have a single stomach."},
+  {id:"vet4",subj:"vet",lvl:1,q:"A cow's normal body temperature is about…",o:["30°C","38.5°C","42°C","36°C"],a:1,ex:"Around 38.5°C is normal for cattle — a bit higher than a human's 37°C."},
+  {id:"vet5",subj:"vet",lvl:1,q:"How long is a cow pregnant (gestation) for, roughly?",o:["3 months","6 months","9 months","14 months"],a:2,ex:"Cattle gestation is about 9 months (~283 days) — similar to a human."},
+  {id:"vet6",subj:"vet",lvl:2,q:"A 'withholding period' after treating an animal is the time before you can…",o:["Feed it","Slaughter or sell it for food","Move it to a new paddock","Shear it"],a:1,ex:"The withholding period lets drug residues clear so meat or milk is safe — you can't sell or kill the animal until it passes."},
+  {id:"vet7",subj:"vet",lvl:2,q:"Body Condition Scoring (BCS) is a way to assess an animal's…",o:["Age","Fat reserves / condition","Breed","Temperature"],a:1,ex:"BCS estimates how much fat an animal is carrying — key for feeding and breeding decisions."},
+  {id:"vet8",subj:"vet",lvl:2,q:"Bloat in cattle is a dangerous build-up of…",o:["Water in the lungs","Gas in the rumen","Fat in the liver","Blood in the gut"],a:1,ex:"Bloat is trapped gas in the rumen that can't be belched out — it can be fatal fast."},
+  {id:"vet9",subj:"vet",lvl:2,q:"A zoonotic disease is one that…",o:["Only affects zoo animals","Spreads between animals and humans","Cannot be treated","Only affects plants"],a:1,ex:"Zoonoses pass between animals and people — e.g. leptospirosis. It's a big part of a vet's public-health role."},
+  {id:"vet10",subj:"vet",lvl:2,q:"How does a vaccine protect an animal?",o:["It kills all bacteria","It trains the immune system with a harmless version","It adds antibiotics to the blood","It raises body temperature"],a:1,ex:"A vaccine shows the immune system a safe version of a germ so it's ready to fight the real one."},
+  {id:"vet11",subj:"vet",lvl:3,q:"Embryo transfer (ET) lets one valuable female pass on her genetics by…",o:["Cloning herself","Producing embryos carried by recipient females","Living longer","Growing bigger"],a:1,ex:"In ET, a top donor's embryos are flushed out and placed in recipient (recip) females who carry the pregnancies — many offspring in one season."},
+  {id:"vet12",subj:"vet",lvl:3,q:"Milk fever in a freshly-calved cow is caused by low blood…",o:["Iron","Calcium","Sugar","Oxygen"],a:1,ex:"Milk fever is hypocalcaemia — low blood calcium as the cow starts producing milk. It responds fast to calcium."},
+  {id:"vet13",subj:"vet",lvl:3,q:"Antibiotics are used to treat infections caused by…",o:["Viruses","Bacteria","Broken bones","Poisons"],a:1,ex:"Antibiotics kill or stop bacteria. They do nothing against viruses — a key reason not to overuse them."},
+  {id:"vet14",subj:"vet",lvl:3,q:"How long is a mare (horse) pregnant for, roughly?",o:["5 months","9 months","11 months","16 months"],a:2,ex:"A mare's gestation is about 11 months (~340 days) — longer than a cow."},
+  {id:"vet15",subj:"vet",lvl:3,q:"In a difficult birth (dystocia), the biggest danger to the newborn is…",o:["Being too clean","Lack of oxygen","Too much colostrum","Being too warm"],a:1,ex:"A stuck or slow birth can cut off oxygen — why knowing when to help, and when to call the vet, matters."},
+  // VET MATHS / DOSING
+  {id:"math1",subj:"math",lvl:1,q:"A drench is given at 1 mL per 10 kg. How much for a 30 kg calf?",o:["2 mL","3 mL","5 mL","10 mL"],a:1,ex:"30 kg ÷ 10 kg = 3, so 3 × 1 mL = 3 mL."},
+  {id:"math2",subj:"math",lvl:1,q:"How many millilitres are in 1 litre?",o:["10 mL","100 mL","1000 mL","10000 mL"],a:2,ex:"1 litre = 1000 mL. Handy when measuring doses from a big bottle."},
+  {id:"math3",subj:"math",lvl:1,q:"What is 25% of 40?",o:["4","10","15","20"],a:1,ex:"25% = a quarter. 40 ÷ 4 = 10."},
+  {id:"math4",subj:"math",lvl:1,q:"Convert 1.5 kg into grams.",o:["150 g","1500 g","15 g","15000 g"],a:1,ex:"1 kg = 1000 g, so 1.5 kg = 1500 g."},
+  {id:"math5",subj:"math",lvl:2,q:"A drug is dosed at 2 mL per 10 kg. How much for a 25 kg animal?",o:["4 mL","5 mL","6 mL","10 mL"],a:1,ex:"25 ÷ 10 = 2.5, then 2.5 × 2 mL = 5 mL."},
+  {id:"math6",subj:"math",lvl:2,q:"A drench is 1 mL per 5 kg. How much for a 200 kg deer?",o:["20 mL","40 mL","50 mL","100 mL"],a:1,ex:"200 ÷ 5 = 40, so 40 × 1 mL = 40 mL."},
+  {id:"math7",subj:"math",lvl:2,q:"A 500 mL bottle gives 20 mL per dose. How many doses does it hold?",o:["10","20","25","50"],a:2,ex:"500 ÷ 20 = 25 doses."},
+  {id:"math8",subj:"math",lvl:3,q:"An antibiotic is dosed at 5 mg per kg. How many mg for a 400 kg cow?",o:["800 mg","1500 mg","2000 mg","4000 mg"],a:2,ex:"400 kg × 5 mg = 2000 mg (that's 2 grams)."},
+  {id:"math9",subj:"math",lvl:3,q:"A solution is 50 mg/mL. You need to give 2000 mg. What volume?",o:["20 mL","40 mL","50 mL","100 mL"],a:1,ex:"2000 mg ÷ 50 mg/mL = 40 mL."},
+  {id:"math10",subj:"math",lvl:3,q:"A 10% solution contains how many grams per 100 mL?",o:["1 g","10 g","100 g","0.1 g"],a:1,ex:"10% means 10 g in every 100 mL. Percentage solutions are grams per 100 mL."},
+  {id:"math11",subj:"math",lvl:3,q:"A drug is 3 mL per 50 kg. How much for a 350 kg animal?",o:["15 mL","18 mL","21 mL","30 mL"],a:2,ex:"350 ÷ 50 = 7, then 7 × 3 mL = 21 mL."},
+  // ---- extra bank (v1.2.0) ----
+  // Biology
+  {id:"bio15",subj:"bio",lvl:1,q:"Which organ pumps blood around the body?",o:["Lungs","Heart","Liver","Kidney"],a:1,ex:"The heart is a muscular pump that pushes blood through the arteries to the whole body."},
+  {id:"bio16",subj:"bio",lvl:1,q:"Plants make their own food by a process called…",o:["Respiration","Digestion","Photosynthesis","Transpiration"],a:2,ex:"Photosynthesis uses sunlight, water and carbon dioxide to make glucose."},
+  {id:"bio17",subj:"bio",lvl:1,q:"Which part of a plant cell captures light for photosynthesis?",o:["Nucleus","Chloroplast","Vacuole","Cell wall"],a:1,ex:"Chloroplasts contain chlorophyll, the green pigment that traps light energy."},
+  {id:"bio18",subj:"bio",lvl:1,q:"Living things that eat other organisms for energy are called…",o:["Producers","Consumers","Minerals","Gases"],a:1,ex:"Consumers (like animals) can't make their own food, so they eat producers or other consumers."},
+  {id:"bio19",subj:"bio",lvl:2,q:"The full name of the molecule that carries genetic instructions is…",o:["ATP","DNA","RNA only","Glucose"],a:1,ex:"DNA (deoxyribonucleic acid) stores the genetic code in every cell."},
+  {id:"bio20",subj:"bio",lvl:2,q:"The heart and blood vessels together make up which system?",o:["Digestive system","Nervous system","Circulatory system","Respiratory system"],a:2,ex:"The circulatory (cardiovascular) system moves blood, oxygen and nutrients around the body."},
+  {id:"bio21",subj:"bio",lvl:2,q:"Photosynthesis produces glucose and releases which gas?",o:["Carbon dioxide","Nitrogen","Oxygen","Hydrogen"],a:2,ex:"Plants release oxygen as a by-product of photosynthesis — the oxygen animals breathe."},
+  {id:"bio22",subj:"bio",lvl:2,q:"White blood cells mainly help the body to…",o:["Carry oxygen","Fight infection","Clot wounds","Store fat"],a:1,ex:"White blood cells are the immune system's soldiers — they attack germs."},
+  {id:"bio23",subj:"bio",lvl:2,q:"An animal that eats only plants is a…",o:["Carnivore","Herbivore","Omnivore","Decomposer"],a:1,ex:"Herbivores (like cattle and deer) eat plants. Carnivores eat meat; omnivores eat both."},
+  {id:"bio24",subj:"bio",lvl:3,q:"A random change in a DNA sequence is called a…",o:["Mutation","Mitosis","Mole","Molecule"],a:0,ex:"Mutations change the genetic code — some are harmful, some neutral, and a few are helpful (driving evolution)."},
+  {id:"bio25",subj:"bio",lvl:3,q:"An organism's 'genotype' refers to…",o:["Its physical appearance","The genes it carries","Its body temperature","Its diet"],a:1,ex:"Genotype = the genes (alleles) an organism has. Phenotype = how those genes show up physically."},
+  {id:"bio26",subj:"bio",lvl:3,q:"In mammals, the sex chromosomes of a male are…",o:["XX","XY","YY","XO"],a:1,ex:"Males are XY and females are XX. The father's sperm decides the sex."},
+  {id:"bio27",subj:"bio",lvl:3,q:"Natural selection means the organisms best suited to their environment are more likely to…",o:["Get smaller","Survive and reproduce","Change species","Stop eating"],a:1,ex:"Better-adapted individuals survive and pass on their genes — the basis of evolution."},
+  {id:"bio28",subj:"bio",lvl:3,q:"Aerobic respiration releases energy and produces carbon dioxide and…",o:["Oxygen","Water","Glucose","Protein"],a:1,ex:"Glucose + oxygen → carbon dioxide + water + energy (ATP)."},
+  // Chemistry
+  {id:"chem15",subj:"chem",lvl:1,q:"The three states of matter are solid, liquid and…",o:["Metal","Gas","Powder","Crystal"],a:1,ex:"Solid, liquid and gas are the three common states of matter."},
+  {id:"chem16",subj:"chem",lvl:1,q:"The chemical formula for water is…",o:["CO₂","H₂O","O₂","NaCl"],a:1,ex:"Water is H₂O — two hydrogen atoms bonded to one oxygen atom."},
+  {id:"chem17",subj:"chem",lvl:1,q:"About 78% of the air around us is which gas?",o:["Oxygen","Carbon dioxide","Nitrogen","Helium"],a:2,ex:"Air is roughly 78% nitrogen and 21% oxygen."},
+  {id:"chem18",subj:"chem",lvl:1,q:"A change that forms a brand-new substance is a…",o:["Physical change","Chemical change","State change","Size change"],a:1,ex:"Chemical changes (like burning or rusting) make new substances and are usually hard to reverse."},
+  {id:"chem19",subj:"chem",lvl:2,q:"Electrons carry which electrical charge?",o:["Positive","Negative","Neutral","It varies"],a:1,ex:"Electrons are negatively charged; protons are positive; neutrons are neutral."},
+  {id:"chem20",subj:"chem",lvl:2,q:"The vertical columns of the periodic table are called…",o:["Periods","Groups","Rows","Shells"],a:1,ex:"Groups (columns) contain elements with similar properties; periods are the rows."},
+  {id:"chem21",subj:"chem",lvl:2,q:"A base that dissolves in water is called…",o:["An acid","An alkali","A salt","A metal"],a:1,ex:"A soluble base is an alkali — it makes a solution with pH above 7."},
+  {id:"chem22",subj:"chem",lvl:2,q:"The chemical formula for carbon dioxide is…",o:["CO","CO₂","C₂O","CaO"],a:1,ex:"Carbon dioxide is CO₂ — one carbon atom and two oxygen atoms."},
+  {id:"chem23",subj:"chem",lvl:2,q:"Table salt is sodium chloride. Its formula is…",o:["NaCl","NaC","SoCl","NcL"],a:0,ex:"Sodium (Na) plus chlorine (Cl) makes NaCl, common salt."},
+  {id:"chem24",subj:"chem",lvl:3,q:"Reduction is the ______ of electrons.",o:["Loss","Gain","Sharing","Removal"],a:1,ex:"OIL RIG: Reduction Is Gain of electrons (oxidation is loss)."},
+  {id:"chem25",subj:"chem",lvl:3,q:"Increasing the concentration of a reactant usually makes a reaction…",o:["Slower","Faster","Stop","Colder"],a:1,ex:"More particles in the same space means more collisions per second, so a faster reaction."},
+  {id:"chem26",subj:"chem",lvl:3,q:"Isotopes of an element have the same number of protons but different numbers of…",o:["Electrons","Neutrons","Atoms","Charges"],a:1,ex:"Isotopes differ only in neutron count, giving them different mass numbers."},
+  // Physics
+  {id:"phys11",subj:"phys",lvl:1,q:"Which of these is a form of energy?",o:["Newton","Heat","Metre","Kilogram"],a:1,ex:"Heat is a form of energy. A newton is force, a metre is distance, a kilogram is mass."},
+  {id:"phys12",subj:"phys",lvl:1,q:"The unit of energy is the…",o:["Watt","Joule","Volt","Newton"],a:1,ex:"Energy is measured in joules (J)."},
+  {id:"phys13",subj:"phys",lvl:1,q:"A magnet has two ends called…",o:["Top and bottom","North and south poles","Plus and minus","Hot and cold"],a:1,ex:"Every magnet has a north and a south pole; opposite poles attract."},
+  {id:"phys14",subj:"phys",lvl:1,q:"Light travels at about…",o:["300 km per second","3,000 km per second","300,000 km per second","30 km per second"],a:2,ex:"Light travels about 300,000 km every second — fast enough to circle Earth 7 times in a second."},
+  {id:"phys15",subj:"phys",lvl:2,q:"Weight is calculated as mass multiplied by…",o:["Speed","Gravity","Time","Area"],a:1,ex:"Weight = mass × gravitational field strength (about 9.8 N/kg on Earth)."},
+  {id:"phys16",subj:"phys",lvl:2,q:"Electric current is measured in…",o:["Volts","Amps","Watts","Ohms"],a:1,ex:"Current is measured in amperes (amps, A) — the flow of charge."},
+  {id:"phys17",subj:"phys",lvl:2,q:"Density is mass divided by…",o:["Volume","Time","Speed","Force"],a:0,ex:"Density = mass ÷ volume. It's why lead feels heavy for its size."},
+  {id:"phys18",subj:"phys",lvl:2,q:"Sound travels fastest through a…",o:["Gas","Liquid","Solid","Vacuum"],a:2,ex:"Sound needs particles to travel; they're packed closest in solids, so it moves fastest there. It can't travel through a vacuum."},
+  {id:"phys19",subj:"phys",lvl:3,q:"Acceleration due to gravity on Earth is about…",o:["0.98 m/s²","9.8 m/s²","98 m/s²","1.8 m/s²"],a:1,ex:"Objects speed up at about 9.8 m/s² as they fall (ignoring air resistance)."},
+  {id:"phys20",subj:"phys",lvl:3,q:"Newton's third law says every action has an equal and opposite…",o:["Force (reaction)","Distance","Mass","Speed"],a:0,ex:"For every action force there's an equal and opposite reaction force — how a jet boat pushes water back to move forward."},
+  // Vet & animal science
+  {id:"vet16",subj:"vet",lvl:1,q:"A young female cow that hasn't had a calf yet is called a…",o:["Steer","Heifer","Bull","Wether"],a:1,ex:"A heifer is a young female before her first calf. After calving she's a cow."},
+  {id:"vet17",subj:"vet",lvl:1,q:"A castrated male beef animal is called a…",o:["Bull","Steer","Heifer","Ram"],a:1,ex:"A castrated male raised for beef is a steer. An entire (uncastrated) male is a bull."},
+  {id:"vet18",subj:"vet",lvl:1,q:"Which of these animals is NOT a ruminant?",o:["Sheep","Deer","Horse","Cattle"],a:2,ex:"Horses are hind-gut fermenters with a single stomach — not ruminants like sheep, deer and cattle."},
+  {id:"vet19",subj:"vet",lvl:1,q:"A newborn deer is called a…",o:["Calf","Fawn","Kid","Foal"],a:1,ex:"A baby deer is a fawn. A calf is a young cow, a foal a young horse, a kid a young goat."},
+  {id:"vet20",subj:"vet",lvl:1,q:"A male deer that grows antlers is a…",o:["Hind","Stag","Doe","Ewe"],a:1,ex:"A male deer is a stag; the female is a hind."},
+  {id:"vet21",subj:"vet",lvl:2,q:"Deer velvet is harvested from the stag's…",o:["Hooves","Growing antlers","Tail","Ears"],a:1,ex:"Velvet is the soft, blood-rich growing antler, removed under pain relief before it hardens."},
+  {id:"vet22",subj:"vet",lvl:2,q:"'Drenching' an animal usually means giving it…",o:["A vaccination","A liquid dose by mouth","An ear tag","A haircut"],a:1,ex:"A drench is a liquid dose given by mouth, often to control internal worms."},
+  {id:"vet23",subj:"vet",lvl:2,q:"Mastitis is an infection of the…",o:["Udder","Hoof","Eye","Lung"],a:0,ex:"Mastitis is inflammation/infection of the udder (mammary gland) — a major issue in dairy cattle."},
+  {id:"vet24",subj:"vet",lvl:2,q:"In New Zealand, NAIT tags are used to…",o:["Show ownership only","Trace and identify animals","Measure weight","Prevent bloat"],a:1,ex:"NAIT (National Animal Identification and Tracing) tracks cattle and deer for disease control."},
+  {id:"vet25",subj:"vet",lvl:2,q:"Facial eczema in stock is caused by a toxin from a…",o:["Virus","Fungus on pasture","Biting insect","Mineral"],a:1,ex:"A pasture fungus produces a toxin that damages the liver, leading to facial eczema in summer/autumn."},
+  {id:"vet26",subj:"vet",lvl:3,q:"Artificial insemination (AI) lets farmers…",o:["Weigh animals remotely","Breed females using selected semen, no bull needed","Cure infections","Grow more grass"],a:1,ex:"AI places chosen semen into the female — spreading top genetics without keeping the sire on site."},
+  {id:"vet27",subj:"vet",lvl:3,q:"In embryo transfer, a 'recipient' (recip) female…",o:["Donates her own embryos","Carries and births another female's embryo","Produces the semen","Is always culled"],a:1,ex:"The recip is a surrogate — she carries a pregnancy from a top donor's embryo, so one donor can have many offspring per year."},
+  {id:"vet28",subj:"vet",lvl:3,q:"The gestation (pregnancy) length of a red deer hind is about…",o:["150 days","233 days","283 days","340 days"],a:1,ex:"A hind is pregnant about 233 days (7.5 months). Cattle are ~283 days, horses ~340."},
+  {id:"vet29",subj:"vet",lvl:3,q:"Internal parasites (worms) in stock are controlled using…",o:["Antibiotics","Anthelmintics (drenches)","Vaccines","Vitamins"],a:1,ex:"Anthelmintics — the active ingredients in drenches — kill internal worms."},
+  {id:"vet30",subj:"vet",lvl:3,q:"Overusing antibiotics is a serious concern because it can lead to…",o:["Faster growth","Antibiotic resistance","More milk","Better wool"],a:1,ex:"Overuse lets bacteria evolve resistance, so the drugs stop working — a big reason vets use them carefully."},
+  {id:"vet31",subj:"vet",lvl:3,q:"A common trace-element deficiency in NZ grazing stock, often supplemented, is…",o:["Selenium","Chlorine","Aluminium","Neon"],a:0,ex:"Many NZ soils are low in selenium, so stock are often supplemented to prevent disease and poor growth."},
+  // Vet dosing maths
+  {id:"math12",subj:"math",lvl:1,q:"A drench is 1 mL per 20 kg. How much for a 40 kg animal?",o:["1 mL","2 mL","4 mL","20 mL"],a:1,ex:"40 ÷ 20 = 2, so 2 × 1 mL = 2 mL."},
+  {id:"math13",subj:"math",lvl:1,q:"How many grams are in half a kilogram?",o:["50 g","500 g","5000 g","5 g"],a:1,ex:"1 kg = 1000 g, so half a kilogram = 500 g."},
+  {id:"math14",subj:"math",lvl:1,q:"What is 10% of 200?",o:["2","10","20","40"],a:2,ex:"10% means one tenth. 200 ÷ 10 = 20."},
+  {id:"math15",subj:"math",lvl:1,q:"A 100 mL bottle gives 10 mL per dose. How many doses?",o:["5","10","20","100"],a:1,ex:"100 ÷ 10 = 10 doses."},
+  {id:"math16",subj:"math",lvl:2,q:"A drug is 1 mL per 25 kg. How much for a 150 kg animal?",o:["4 mL","5 mL","6 mL","10 mL"],a:2,ex:"150 ÷ 25 = 6, so 6 mL."},
+  {id:"math17",subj:"math",lvl:2,q:"A drench is 2 mL per 15 kg. How much for a 45 kg animal?",o:["3 mL","6 mL","9 mL","30 mL"],a:1,ex:"45 ÷ 15 = 3, then 3 × 2 mL = 6 mL."},
+  {id:"math18",subj:"math",lvl:2,q:"Convert 2.5 litres into millilitres.",o:["250 mL","2500 mL","25 mL","25000 mL"],a:1,ex:"1 L = 1000 mL, so 2.5 L = 2500 mL."},
+  {id:"math19",subj:"math",lvl:2,q:"A mob of 20 calves each need a 3 mL dose. How much in total?",o:["23 mL","60 mL","6 mL","600 mL"],a:1,ex:"20 × 3 mL = 60 mL total."},
+  {id:"math20",subj:"math",lvl:3,q:"An antibiotic is 10 mg per kg. How many mg for a 250 kg animal?",o:["250 mg","1250 mg","2500 mg","25000 mg"],a:2,ex:"250 kg × 10 mg = 2500 mg."},
+  {id:"math21",subj:"math",lvl:3,q:"A solution is 100 mg/mL. You need 2500 mg. What volume?",o:["2.5 mL","25 mL","250 mL","50 mL"],a:1,ex:"2500 mg ÷ 100 mg/mL = 25 mL."},
+  {id:"math22",subj:"math",lvl:3,q:"A 5% solution contains how many grams per 100 mL?",o:["0.5 g","5 g","50 g","500 g"],a:1,ex:"A percentage solution is grams per 100 mL, so 5% = 5 g per 100 mL."},
+  {id:"math23",subj:"math",lvl:3,q:"A drug is 1 mL per 12 kg. How much for a 300 kg animal?",o:["20 mL","24 mL","25 mL","30 mL"],a:2,ex:"300 ÷ 12 = 25, so 25 mL."},
+];
+const QBANK={}; QUIZ.forEach(q=>QBANK[q.id]=q);
+
+function freshQuiz(){return{ability:{bio:1.5,chem:1.5,phys:1.4,vet:1.6,math:1.5},streak:{last:"",count:0},history:[],seen:{},missed:[],today:null};}
+let quizState=load("pvp_quiz",freshQuiz());
+if(!quizState||!quizState.ability){quizState=freshQuiz();}
+function saveQuiz(){save("pvp_quiz",quizState);}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function yesterdayISO(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function targetLvl(k){return clamp(Math.round(quizState.ability[k]),1,3);}
+function masteryLabel(v){return v<1.35?"Beginner":v<1.85?"Developing":v<2.4?"Confident":"Strong";}
+
+let QS=null,qPractice=false,qShown=false;
+
+function pickQ(k,used){
+  const seen=quizState.seen,lvl=targetLvl(k);
+  let pool=QUIZ.filter(q=>q.subj===k&&q.lvl===lvl&&!used.includes(q.id));
+  if(!pool.length)pool=QUIZ.filter(q=>q.subj===k&&!used.includes(q.id));
+  if(!pool.length)pool=QUIZ.filter(q=>q.subj===k);
+  pool.sort((a,b)=>(seen[a.id]||0)-(seen[b.id]||0));
+  const min=seen[pool[0].id]||0;
+  const top=pool.filter(q=>(seen[q.id]||0)<=min);
+  return top[Math.floor(Math.random()*top.length)].id;
+}
+function buildSet(size,useReview){
+  const subs=SUBJ_META.map(s=>s.k);
+  const counts={}; subs.forEach(s=>counts[s]=1);
+  const sorted=[...subs].sort((a,b)=>quizState.ability[a]-quizState.ability[b]);
+  let extra=size-subs.length,i=0;
+  while(extra>0){counts[sorted[i%sorted.length]]++;extra--;i++;}
+  const used=[];
+  if(useReview){(quizState.missed||[]).slice(0,2).forEach(id=>{const q=QBANK[id];if(q&&counts[q.subj]>0){used.push(id);counts[q.subj]--;}});}
+  subs.forEach(s=>{for(let n=0;n<counts[s];n++){const id=pickQ(s,used);if(id&&!used.includes(id))used.push(id);}});
+  for(let j=used.length-1;j>0;j--){const r=Math.floor(Math.random()*(j+1));[used[j],used[r]]=[used[r],used[j]];}
+  return used;
+}
+function buildDaily(){
+  const t=todayISO();
+  if(quizState.today&&quizState.today.date===t)return;
+  quizState.today={date:t,qids:buildSet(8,true),idx:0,answers:[],done:false};
+  saveQuiz();
+}
+function startDaily(){buildDaily();QS=quizState.today;qPractice=false;qShown=(QS.answers[QS.idx]!=null);renderQuiz();}
+function startPractice(){QS={date:todayISO(),qids:buildSet(6,false),idx:0,answers:[],practice:true};qPractice=true;qShown=false;renderQuiz();}
+function answerQ(choice){
+  if(qShown)return;
+  const qid=QS.qids[QS.idx],q=QBANK[qid],correct=choice===q.a;
+  QS.answers[QS.idx]={qid,choice,correct};
+  quizState.ability[q.subj]=clamp(quizState.ability[q.subj]+(correct?0.15:-0.2),1,3);
+  quizState.seen[qid]=(quizState.seen[qid]||0)+1;
+  quizState.missed=quizState.missed||[];
+  if(correct){quizState.missed=quizState.missed.filter(x=>x!==qid);}
+  else if(!quizState.missed.includes(qid)){quizState.missed.push(qid);if(quizState.missed.length>12)quizState.missed.shift();}
+  qShown=true;
+  if(!qPractice)quizState.today.idx=QS.idx;
+  saveQuiz();renderQuiz();schedulePush();
+}
+function nextQ(){
+  QS.idx++;qShown=false;
+  if(QS.idx>=QS.qids.length){finishSession();return;}
+  if(!qPractice)quizState.today.idx=QS.idx;
+  saveQuiz();renderQuiz();
+}
+function finishSession(){
+  if(!qPractice){
+    const t=todayISO(),correct=QS.answers.filter(a=>a&&a.correct).length;
+    quizState.today.done=true;
+    quizState.history.push({date:t,correct,total:QS.qids.length});
+    if(quizState.streak.last===t){}
+    else if(quizState.streak.last===yesterdayISO()){quizState.streak.count++;quizState.streak.last=t;}
+    else{quizState.streak.count=1;quizState.streak.last=t;}
+    saveQuiz();
+  }
+  QS.finished=true;renderQuiz();schedulePush();
+}
+function quizGoHome(){QS=null;renderQuiz();}
+
+function masteryBarsHTML(){
+  return SUBJ_META.map(s=>{
+    const v=quizState.ability[s.k],pct=Math.round((v-1)/2*100);
+    return '<div class="mrow"><div class="top"><span class="nm">'+s.ic+' '+s.n+'</span><span class="lb">'+masteryLabel(v)+'</span></div><div class="track"><div class="fill" style="width:'+clamp(pct,6,100)+'%"></div></div></div>';
+  }).join("");
+}
+function quizHomeHTML(){
+  const t=todayISO(),td=quizState.today;
+  const doneToday=td&&td.date===t&&td.done;
+  const inProgress=td&&td.date===t&&!td.done&&td.idx>0;
+  const totalDone=quizState.history.length;
+  let h='<div class="card quiz-hero"><h2>Daily quiz</h2><p class="small" style="opacity:.92;margin:4px 0 0">Eight questions a day across Biology, Chemistry, Physics, Vet science and dosing maths. It learns what you find easy or hard and adjusts — and every answer teaches you why.</p>';
+  h+='<div class="streak-row"><div class="streak-box"><div class="v">'+(quizState.streak.count||0)+'</div><div class="l">DAY STREAK</div></div><div class="streak-box"><div class="v">'+totalDone+'</div><div class="l">QUIZZES DONE</div></div><div class="streak-box"><div class="v">'+(quizState.missed?quizState.missed.length:0)+'</div><div class="l">TO REVIEW</div></div></div></div>';
+  if(doneToday){
+    const last=quizState.history[quizState.history.length-1];
+    h+='<div class="card" style="text-align:center"><div class="res-msg" style="color:var(--ok)">✓ Today\'s quiz done — '+last.correct+'/'+last.total+'</div><p class="small muted" style="margin:2px 0 12px">Come back tomorrow to keep your streak. Want to keep going now?</p><button class="btn ghost block" onclick="startPractice()">Practice more (extra round)</button></div>';
+  }else if(inProgress){
+    h+='<div class="card" style="text-align:center"><p class="small muted" style="margin:0 0 12px">You\'re part-way through today\'s quiz — question '+(td.idx+1)+' of '+td.qids.length+'.</p><button class="btn primary block" onclick="startDaily()">Continue today\'s quiz</button></div>';
+  }else{
+    h+='<div class="card" style="text-align:center"><p class="small muted" style="margin:0 0 12px">Ready when you are — takes about 3 minutes.</p><button class="btn primary block" onclick="startDaily()">Start today\'s quiz</button></div>';
+  }
+  h+='<div class="card"><h3>Your mastery</h3><p class="small muted" style="margin:2px 0 12px">Grows as you get questions right. The app gives you harder questions in your strong subjects and easier ones where you\'re still building.</p>'+masteryBarsHTML()+'</div>';
+  return h;
+}
+function quizQuestionHTML(){
+  const qid=QS.qids[QS.idx],q=QBANK[qid],ans=QS.answers[QS.idx];
+  let dots='';
+  for(let i=0;i<QS.qids.length;i++){
+    const a=QS.answers[i];
+    let c=i===QS.idx?"on":"";
+    if(a)c=a.correct?"ok":"no";
+    dots+='<div class="d '+c+'"></div>';
+  }
+  let h='<div class="card">';
+  h+='<div class="qprog">'+dots+'</div>';
+  h+='<div class="q-subj"><span class="qic">'+SUBJ_IC[q.subj]+'</span><span class="qn">'+SUBJ_NAME[q.subj]+' · Level '+q.lvl+' · Q'+(QS.idx+1)+' of '+QS.qids.length+'</span></div>';
+  h+='<div class="q-text">'+q.q+'</div>';
+  q.o.forEach((o,i)=>{
+    let cls="opt";
+    if(qShown){if(i===q.a)cls+=" correct";else if(ans&&i===ans.choice)cls+=" wrong";else cls+=" dim";}
+    h+='<button class="'+cls+'" '+(qShown?"disabled":'onclick="answerQ('+i+')"')+'>'+o+'</button>';
+  });
+  if(qShown){
+    const ok=ans&&ans.correct;
+    h+='<div class="expl '+(ok?"ok":"no")+'"><span class="eh">'+(ok?"Correct 🎉":"Not quite")+'</span>'+q.ex+'</div>';
+    h+='<button class="btn primary block" onclick="nextQ()">'+(QS.idx+1>=QS.qids.length?"See results":"Next question")+'</button>';
+  }
+  h+='<div style="text-align:center;margin-top:12px"><button class="link" onclick="quizGoHome()">Save &amp; exit</button></div>';
+  h+='</div>';
+  return h;
+}
+function quizResultsHTML(){
+  const correct=QS.answers.filter(a=>a&&a.correct).length,total=QS.qids.length;
+  const pct=Math.round(correct/total*100);
+  let msg;
+  if(pct>=90)msg="Outstanding — you're flying.";
+  else if(pct>=70)msg="Great work. That's vet-school pace.";
+  else if(pct>=50)msg="Solid effort — the ones you missed are saved to review.";
+  else msg="Every miss is a lesson. You'll see these again soon.";
+  let h='<div class="card"><div class="res-big"><div class="score">'+correct+'</div><div class="of">out of '+total+' ('+pct+'%)</div></div><div class="res-msg">'+msg+'</div>';
+  if(!qPractice)h+='<p class="small muted" style="text-align:center;margin:0 0 6px">Streak: '+(quizState.streak.count||0)+' day'+((quizState.streak.count||0)===1?'':'s')+' 🔥</p>';
+  h+='</div>';
+  h+='<div class="card"><h3>Review</h3>';
+  QS.qids.forEach((qid,i)=>{
+    const q=QBANK[qid],a=QS.answers[i],ok=a&&a.correct;
+    h+='<div style="padding:9px 0;border-bottom:1px solid var(--line)"><div style="font-size:13px;font-weight:700">'+(ok?'✓':'✗')+' '+q.q+'</div>';
+    if(!ok)h+='<div class="small" style="color:var(--ink-soft);margin-top:3px">Answer: <b style="color:var(--brand-d)">'+q.o[q.a]+'</b></div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<div class="card"><h3>Mastery now</h3>'+masteryBarsHTML()+'</div>';
+  h+='<button class="btn primary block" onclick="quizGoHome()">Done</button>';
+  if(!qPractice)h+='<button class="btn ghost block" style="margin-top:10px" onclick="startPractice()">Practice more</button>';
+  h+='<div style="height:10px"></div>';
+  return h;
+}
+function renderQuiz(){
+  const el=$("view-quiz");
+  if(QS&&QS.finished){el.innerHTML=quizResultsHTML();window.scrollTo(0,0);return;}
+  if(QS){el.innerHTML=quizQuestionHTML();return;}
+  el.innerHTML=quizHomeHTML();
+}
+
+/* ---------- NAV ---------- */
+const VIEWS={journey:"view-journey",study:"view-study",quiz:"view-quiz",exp:"view-exp",learn:"view-learn",me:"view-me"};
+function showTab(tab){
+  Object.values(VIEWS).forEach(v=>$(v).classList.remove("active"));
+  $(VIEWS[tab]).classList.add("active");
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  if(tab==="journey")renderJourney();
+  if(tab==="study")renderStudy();
+  if(tab==="quiz")renderQuiz();
+  if(tab==="exp")renderExp();
+  if(tab==="learn")renderLearn();
+  if(tab==="me")renderMe();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("#nav button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+$("log-save").addEventListener("click",saveLog);
+$("log-cancel").addEventListener("click",closeLog);
+$("log-overlay").addEventListener("click",e=>{if(e.target===$("log-overlay"))closeLog();});
+
+/* ---------- SYNC & COACHING ---------- */
+function getEndpoint(){return (load("pvp_endpoint","")||"").trim();}
+function appStateBlob(){return{ms:msState,exp:expLog,why:whyText,learn:learnRead,quiz:quizState};}
+let pushTimer=null,suppressPush=false;
+function schedulePush(){if(!getEndpoint()||suppressPush)return;clearTimeout(pushTimer);pushTimer=setTimeout(pushState,4000);}
+function pushState(){
+  const ep=getEndpoint();if(!ep)return;
+  const ts=Date.now();
+  const body=JSON.stringify({type:"state",id:"paige",updatedAt:ts,data:appStateBlob()});
+  fetch(ep,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body}).then(()=>{save("pvp_stateTs",ts);}).catch(()=>{});
+}
+function applyRemoteQuestions(rows){
+  if(!Array.isArray(rows))return 0;let n=0;
+  rows.forEach(row=>{
+    if(!row||row.id==null||!SUBJ_NAME[row.subj]||!Array.isArray(row.o)||row.o.length<2)return;
+    if(!(row.a>=0&&row.a<row.o.length))return;
+    const q={id:String(row.id),subj:row.subj,lvl:clamp(parseInt(row.lvl)||1,1,3),q:String(row.q||""),o:row.o.map(String),a:row.a,ex:String(row.ex||"")};
+    if(!q.q)return;
+    if(QBANK[q.id]){const i=QUIZ.findIndex(x=>x.id===q.id);if(i>=0)QUIZ[i]=q;QBANK[q.id]=q;}
+    else{QUIZ.push(q);QBANK[q.id]=q;}
+    n++;
+  });
+  return n;
+}
+function adoptState(d){
+  suppressPush=true;
+  try{
+    if(d.ms)msState=d.ms;if(d.exp)expLog=d.exp;if(typeof d.why==="string")whyText=d.why;if(d.learn)learnRead=d.learn;if(d.quiz&&d.quiz.ability)quizState=d.quiz;
+    save(K.ms,msState);save(K.exp,expLog);save(K.why,whyText);save(K.learn,learnRead);saveQuiz();
+    refreshHeader();
+    const cur=document.querySelector("#nav button.active");if(cur)showTab(cur.dataset.tab);
+  }finally{suppressPush=false;}
+}
+async function pullRemote(){
+  const ep=getEndpoint();if(!ep)return;
+  try{
+    const r=await fetch(ep+"?action=questions&t="+Date.now(),{cache:"no-store"});
+    const qs=await r.json();applyRemoteQuestions(qs);
+  }catch(e){}
+  try{
+    const r=await fetch(ep+"?action=state&id=paige&t="+Date.now(),{cache:"no-store"});
+    const s=await r.json();
+    if(s&&s.data&&s.updatedAt&&s.updatedAt>(load("pvp_stateTs",0))){adoptState(s.data);save("pvp_stateTs",s.updatedAt);}
+  }catch(e){}
+}
+function renderSetState(){
+  const on=!!getEndpoint();
+  $("set-state").innerHTML='<div class="sync-state '+(on?"on":"local")+'">'+(on?"● Syncing to the cloud":"● Local only — this phone")+'</div>';
+}
+function openSettings(){$("set-endpoint").value=getEndpoint();renderSetState();$("set-overlay").classList.add("open");}
+function closeSettings(){$("set-overlay").classList.remove("open");}
+$("gear-btn")&&renderSetState();
+$("set-save").addEventListener("click",()=>{save("pvp_endpoint",$("set-endpoint").value.trim());renderSetState();save("pvp_stateTs",0);pullRemote();});
+$("set-sync").addEventListener("click",()=>{pushState();pullRemote();closeSettings();});
+$("set-clear").addEventListener("click",()=>{save("pvp_endpoint","");$("set-endpoint").value="";renderSetState();});
+$("set-cancel").addEventListener("click",closeSettings);
+$("set-overlay").addEventListener("click",e=>{if(e.target===$("set-overlay"))closeSettings();});
+
+/* ---------- INIT ---------- */
+renderYearTabs();
+renderJourney();
+refreshHeader();
+pullRemote();
+</script>
+</body>
+</html>

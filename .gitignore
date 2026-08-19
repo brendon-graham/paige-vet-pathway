@@ -1,0 +1,4 @@
+# local runtime / secrets — not for the repo
+coach-config.json
+coach-brief.json
+coach-log.md
