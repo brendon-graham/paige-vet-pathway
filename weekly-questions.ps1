@@ -10,6 +10,12 @@
 #
 # Schedule (weekly):
 #   schtasks /Create /TN "Paige Road to Vet Coach" /TR "powershell -ExecutionPolicy Bypass -File C:\Users\BrendonGraham\paige-vet-pathway\weekly-questions.ps1" /SC WEEKLY /D SUN /ST 07:00
+#
+# Params (both optional; live run uses neither):
+#   -PersonId <id>   which synced profile to coach from (default "paige")
+#   -ToPending       write drafts to the Pending tab instead of live Questions (for testing)
+
+param([string]$PersonId = "paige", [switch]$ToPending)
 
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -48,13 +54,14 @@ function Get-JsonArray {
 
 function Post-Publish {
   param($Rows)
-  $body = @{ type="publish"; rows=$Rows } | ConvertTo-Json -Depth 8
+  $postType = if ($ToPending) { "pending" } else { "publish" }
+  $body = @{ type=$postType; rows=$Rows } | ConvertTo-Json -Depth 8
   $bytes = [Text.Encoding]::UTF8.GetBytes($body)
   return Invoke-RestMethod -Uri $endpoint -Method Post -ContentType "text/plain; charset=utf-8" -Body $bytes
 }
 
 # ---- pull her progress + existing questions ----
-$state = Invoke-RestMethod -Uri ("{0}?action=state&id=paige&t={1}" -f $endpoint, [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) -Method Get
+$state = Invoke-RestMethod -Uri ("{0}?action=state&id={1}&t={2}" -f $endpoint, $PersonId, [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) -Method Get
 if (-not $state.data -or -not $state.data.quiz) { Write-Host "No synced progress yet - nothing to do."; exit 0 }
 $ability = $state.data.quiz.ability
 
