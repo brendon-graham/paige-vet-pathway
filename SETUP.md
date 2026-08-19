@@ -37,27 +37,38 @@ Add a row to the `Questions` tab, set `active` to `TRUE`, and it shows up in her
 
 ---
 
-## Phase 3 — The weekly coaching loop (your machine)
+## Phase 3 — The autonomous weekly loop (your machine)
 
-This keeps the bank growing on its own, aimed at her weak spots. Design (built to be safe with
-teaching content — nothing wrong gets taught):
+**Mode: fully automatic, no approval step** (Brendon's call, 20 Aug 2026). The weekly job drafts
+new questions for her weak subjects and publishes them straight to the live `Questions` tab.
+The one safeguard kept is an **automated self-check** — each new question's answer is
+independently re-derived by the model, and any that don't match are dropped. This is not an
+approval gate (nothing waits on a human); it just stops a wrong answer key ever reaching her.
 
-1. **`weekly-coach.ps1`** (in this folder) runs on a schedule. It **pulls her state**, works out
-   which subjects and levels she's weakest in (verbatim from her ability scores), and writes a
-   **coaching brief** (`coach-brief.json`) — e.g. "needs 4 new Chemistry L2, 3 Vet L3".
-2. **I draft the questions** from that brief (the reasoning/content step) and **verify each answer**,
-   then post them to the **`Pending`** tab — never straight to live.
-3. **Quick review gate:** you (or I, in a session) glance at `Pending`, and good rows get copied
-   into `Questions` with `active = TRUE`. That's the only step that puts a question in front of her.
+**`weekly-questions.ps1`** does the whole thing unattended:
+1. Pulls her synced progress, finds her 3 weakest subjects and their working level.
+2. Calls the Claude API to draft `perSubject` questions each, avoiding duplicates of what she has.
+3. Re-checks every answer with a second, independent API call; keeps only the ones that verify.
+4. Publishes the survivors to the live `Questions` tab (active = TRUE) — she sees them next open.
+5. Logs what it did to `coach-log.md`.
 
-To schedule the compute step, once the endpoint is set:
+(`weekly-coach.ps1` is the lighter compute-only version — brief to a file, no publishing. Kept as
+a dry-run / diagnostic. `weekly-questions.ps1` is the live one.)
+
+### Switch it on (3 steps)
+1. **Redeploy `Code.gs`** — it now has a `publish` handler for the auto-loop. Paste the updated
+   `Code.gs` over the old one in the Apps Script editor, then **Deploy → Manage deployments →
+   edit → New version**. (The `/exec` URL stays the same.)
+2. **Create `coach-config.json`** in this folder (copy `coach-config.example.json`) and fill in:
+   - `endpoint` — your `/exec` URL
+   - `anthropicKey` — your Claude API key
+   (This file is git-ignored, so the key never leaves your machine.)
+3. **Schedule it** (weekly, Sunday 7am):
 ```
-schtasks /Create /TN "Paige Road to Vet Coach" /TR "powershell -ExecutionPolicy Bypass -File C:\Users\BrendonGraham\paige-vet-pathway\weekly-coach.ps1" /SC WEEKLY /D SUN /ST 07:00
+schtasks /Create /TN "Paige Road to Vet Coach" /TR "powershell -ExecutionPolicy Bypass -File C:\Users\BrendonGraham\paige-vet-pathway\weekly-questions.ps1" /SC WEEKLY /D SUN /ST 07:00
 ```
-(Mirrors the feed-snapshot task pattern.)
-
-**Decision still open:** whether the drafting step (2) runs through the AI Bridge automatically each
-week or I do it when you nudge me. Both keep the review gate. Tell me which and I'll wire it.
+Run it once by hand first (`powershell -ExecutionPolicy Bypass -File weekly-questions.ps1`) to
+watch the first batch land, then leave it to the schedule.
 
 ---
 

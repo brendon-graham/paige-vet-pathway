@@ -30,6 +30,7 @@ function doPost(e) {
   try { body = JSON.parse(e.postData.contents); } catch (err) { return json({ok:false, error:'bad json'}); }
   if (body.type === 'state') return json(writeState(body));
   if (body.type === 'pending') return json(writePending(body.rows || []));
+  if (body.type === 'publish') return json(writeQuestions(body.rows || []));
   return json({ok:false, error:'unknown type'});
 }
 
@@ -117,6 +118,34 @@ function writeState(body) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// Publish verified questions straight to the LIVE Questions tab (active = TRUE).
+// Used by the autonomous weekly job. Rejects malformed rows defensively so a bad
+// generation can never write a broken question to Paige.
+function writeQuestions(rows) {
+  if (!rows.length) return { ok: true, added: 0 };
+  var sh = sheet('Questions');
+  var existing = {};
+  var vals = sh.getDataRange().getValues();
+  for (var r = 1; r < vals.length; r++) existing[String(vals[r][0])] = true;
+  var added = 0;
+  rows.forEach(function(row) {
+    var subj = String(row.subj || '').trim();
+    if (!SUBJECTS[subj]) return;
+    var o = (row.o || []).filter(function(x){ return x !== '' && x != null; }).map(String);
+    if (o.length < 2) return;
+    var ans = row.answer != null ? parseInt(row.answer, 10) : (row.a != null ? row.a + 1 : 0);
+    if (!(ans >= 1 && ans <= o.length)) return;
+    if (!row.q || !row.ex) return;
+    var id = String(row.id || ('gen_' + subj + '_' + Date.now() + '_' + added));
+    if (existing[id]) return;
+    existing[id] = true;
+    sh.appendRow([ id, subj, parseInt(row.lvl,10)||1, String(row.q),
+      o[0]||'', o[1]||'', o[2]||'', o[3]||'', ans, String(row.ex), true ]);
+    added++;
+  });
+  return { ok: true, added: added };
 }
 
 function writePending(rows) {
