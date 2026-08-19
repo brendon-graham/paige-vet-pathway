@@ -41,7 +41,9 @@ function Invoke-Anthropic {
   $resp = Invoke-WebRequest -Uri "https://api.anthropic.com/v1/messages" -Method Post -Headers $headers -ContentType "application/json" -Body $bytes -UseBasicParsing
   $txt = [Text.Encoding]::UTF8.GetString($resp.RawContentStream.ToArray())
   $obj = $txt | ConvertFrom-Json
-  return [string]$obj.content[0].text
+  # newer models (Sonnet 5) can prepend a "thinking" block - read the text block(s), not content[0]
+  $textOut = ($obj.content | Where-Object { $_.type -eq 'text' } | ForEach-Object { [string]$_.text }) -join "`n"
+  return [string]$textOut
 }
 
 function Get-JsonArray {
@@ -103,23 +105,24 @@ where "answer" is the 1-based index (1-4) of the correct option.
   }
   $vJson = ($vItems | ConvertTo-Json -Depth 6 -Compress)
   $verPrompt = @"
-For each question below, independently work out which option (1-based index) is correct. Ignore any answer you might guess the author intended - solve it yourself.
-Return ONLY a JSON array: [{"n":0,"correct":2}, ...] with the correct 1-based option index for each n.
+For each question below, independently work out which option is correct - solve it yourself, ignore any intended answer.
+Return ONLY a JSON array: [{"n":0,"answer":"exact text of the correct option"}, ...]. Copy the chosen option's text exactly as written.
 Questions: $vJson
 "@
   $verText = Invoke-Anthropic -Prompt $verPrompt
   $ver = Get-JsonArray -Text $verText
   $verMap = @{}
-  foreach ($v in $ver) { $verMap[[int]$v.n] = [int]$v.correct }
+  foreach ($v in $ver) { $verMap[[int]$v.n] = ((([string]$v.answer) -replace '\s+',' ').Trim().ToLower()) }
 
   $kept = @()
   for ($i = 0; $i -lt $gen.Count; $i++) {
     $q = $gen[$i]
     $claimed = [int]$q.answer
-    if (-not $verMap.ContainsKey($i)) { continue }
-    if ($verMap[$i] -ne $claimed) { continue }                 # self-check failed -> drop
     if (-not $q.o -or $q.o.Count -lt 2) { continue }
     if ($claimed -lt 1 -or $claimed -gt $q.o.Count) { continue }
+    if (-not $verMap.ContainsKey($i)) { continue }
+    $genChosen = ((([string]$q.o[$claimed-1]) -replace '\s+',' ').Trim().ToLower())
+    if ($verMap[$i] -ne $genChosen) { continue }               # verifier disagreed on the answer -> drop
     $kept += @{
       id     = "gen_${s}_${stamp}_$i"
       subj   = $s
