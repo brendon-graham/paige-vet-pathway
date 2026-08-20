@@ -73,7 +73,7 @@ $subs = @("bio","chem","phys","vet","math")
 $ranked = $subs | Sort-Object { [double]$ability.$_ }
 $weak = @($ranked | Select-Object -First 3)
 
-$stamp = (Get-Date).ToString("yyyyMMdd")
+$stamp = (Get-Date).ToString("yyyyMMddHHmmss")
 $published = 0
 $logLines = @()
 
