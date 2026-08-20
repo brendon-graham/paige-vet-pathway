@@ -225,11 +225,76 @@ function writePending(rows) {
 
 // ---- Weekly progress email ----
 
+// Ordered pathway milestones (must match the app's ids) — lets the report name what she
+// ticked off and what's next.
+var MILESTONES = [
+  {id:'y11a', t:'Choose your vet-pathway subjects'},
+  {id:'y11b', t:'Lock in NCEA Level 1 literacy + numeracy'},
+  {id:'y11c', t:"Write down your 'why'"},
+  {id:'y11d', t:'Log your first hands-on animal session'},
+  {id:'y11e', t:'Aim for a Merit or Excellence endorsement'},
+  {id:'y12a', t:'Take Chemistry, Biology, Physics, Maths + English'},
+  {id:'y12b', t:'Earn 14+ credits in NCEA Level 2 Physics'},
+  {id:'y12c', t:'Earn 14+ credits in NCEA Level 2 Maths'},
+  {id:'y12d', t:'Do a day at a small-animal vet clinic'},
+  {id:'y12e', t:'Earn a Level 2 Merit/Excellence endorsement'},
+  {id:'y13a', t:'Take Level 3 Chemistry + Level 3 Biology'},
+  {id:'y13b', t:'Add Level 3 Physics and/or Maths'},
+  {id:'y13c', t:'Gain University Entrance'},
+  {id:'y13d', t:'Reach 20+ logged experience hours, 2+ settings'},
+  {id:'y13e', t:"Apply to Massey's BVSc Pre-Selection"},
+  {id:'prea', t:'Enrol in the Vet Pre-Selection semester'},
+  {id:'preb', t:'Pass all four prerequisite papers'},
+  {id:'prec', t:'Achieve a GPA of 5.0 or higher'},
+  {id:'sela', t:'Sit the Casper assessment'},
+  {id:'selb', t:'Sit the STAT assessment'},
+  {id:'selc', t:'Complete the MMI'},
+  {id:'seld', t:'Receive your offer into the professional phase'},
+  {id:'profa', t:'Start the 5-year professional phase'},
+  {id:'profb', t:'Complete clinical & EMS placements'},
+  {id:'profc', t:'Graduate with your BVSc'},
+  {id:'rega', t:'Register with the NZ Veterinary Council'}
+];
+
+// Rotating, factually-reliable tips (no invented claims).
+var TIPS = [
+  'Massey wants 14+ credits of NCEA Level 3 Chemistry and Biology — these quizzes build exactly that foundation.',
+  "Vet selection isn't only grades: Casper and the MMI test how you think and communicate. Keep talking your reasoning out loud.",
+  'Hands-on animal experience is gold for a vet application — a clinic day or a session on the farm both count.',
+  'Strong algebra makes senior Chemistry and Physics much easier, so maths practice pays off twice.',
+  'Consistency beats cramming — a few quizzes across several days builds mastery that sticks.',
+  'Aim for Merit/Excellence at school: the high-marks habit is what a GPA of 5.0+ needs at Massey.'
+];
+
 function masteryLabel(v) {
   if (v < 1.35) return 'Beginner';
   if (v < 1.85) return 'Developing';
   if (v < 2.4)  return 'Confident';
   return 'Strong';
+}
+
+function subjOfId(id) {
+  id = String(id);
+  if (id.indexOf('gen_') === 0) { var p = id.split('_'); return p[1] || ''; }
+  var m = id.match(/^[a-z]+/);
+  return m ? m[0] : '';
+}
+
+function metaSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('Meta');
+  if (!sh) { sh = ss.insertSheet('Meta'); sh.appendRow(['key','json']); }
+  return sh;
+}
+function readMeta(key) {
+  var sh = metaSheet(); var v = sh.getDataRange().getValues();
+  for (var r = 1; r < v.length; r++) { if (String(v[r][0]) === key) { try { return JSON.parse(v[r][1]); } catch (e) { return null; } } }
+  return null;
+}
+function writeMeta(key, obj) {
+  var sh = metaSheet(); var v = sh.getDataRange().getValues(); var js = JSON.stringify(obj);
+  for (var r = 1; r < v.length; r++) { if (String(v[r][0]) === key) { sh.getRange(r + 1, 2).setValue(js); return; } }
+  sh.appendRow([key, js]);
 }
 
 function installWeeklyTrigger() {
@@ -249,79 +314,159 @@ function sendWeeklyReport() {
   var history = q.history || [];
   var ability = q.ability || {};
   var streak = (q.streak && q.streak.count) || 0;
-  var review = (q.missed || []).length;
+  var missed = q.missed || [];
+  var msNow = d.ms || {};
+  var exp = d.exp || [];
 
   var tz = Session.getScriptTimeZone();
   var now = new Date();
-  var weekAgo = new Date(now.getTime() - 7 * 86400000);
-  var weekHist = history.filter(function (h) { return h && h.date && new Date(h.date) >= weekAgo; });
+  var d7 = new Date(now.getTime() - 7 * 86400000);
+  var d14 = new Date(now.getTime() - 14 * 86400000);
+  function pdate(s) { return s ? new Date(s) : null; }
+
+  // quiz activity: this week vs the week before (from dated history)
+  var wkThis = history.filter(function (h) { var t = pdate(h && h.date); return t && t >= d7; });
+  var wkPrev = history.filter(function (h) { var t = pdate(h && h.date); return t && t < d7 && t >= d14; });
+  function acc(arr) { var c = 0, tt = 0; arr.forEach(function (h) { c += (h.correct || 0); tt += (h.total || 0); }); return tt ? Math.round(c / tt * 100) : null; }
+  var qThis = wkThis.length, qPrev = wkPrev.length;
+  var accThis = acc(wkThis), accPrev = acc(wkPrev);
   var totalQuizzes = history.length;
-  var quizzesThisWeek = weekHist.length;
-  var wc = 0, wt = 0;
-  weekHist.forEach(function (h) { wc += (h.correct || 0); wt += (h.total || 0); });
-  var weekPct = wt ? Math.round(wc / wt * 100) : null;
+
+  // experience: this week + total (from dated entries)
+  var expThis = exp.filter(function (e) { var t = pdate(e && e.date); return t && t >= d7; });
+  var expHrsTotal = 0; exp.forEach(function (e) { expHrsTotal += (parseFloat(e.hours) || 0); });
+  var settings = {}; exp.forEach(function (e) { if (e && e.oppId) settings[e.oppId] = 1; });
+
+  // last week's snapshot for ability + milestone movement
+  var snap = readMeta('weeksnap');
+  var prevAb = (snap && snap.ability) ? snap.ability : null;
+  var prevMs = (snap && snap.ms) ? snap.ms : {};
 
   var subs = [['bio','Biology'],['chem','Chemistry'],['phys','Physics'],['vet','Vet & Animal'],['math','Vet Maths']];
-  var weakest = null, weakAb = 99, masteryRows = '';
+  var weakest = null, weakAb = 99, strongest = null, strongAb = -1, subjectBlocks = '', improvedList = [];
   subs.forEach(function (s) {
     var v = typeof ability[s[0]] === 'number' ? ability[s[0]] : 1.5;
     if (v < weakAb) { weakAb = v; weakest = s[1]; }
+    if (v > strongAb) { strongAb = v; strongest = s[1]; }
+    var pv = (prevAb && typeof prevAb[s[0]] === 'number') ? prevAb[s[0]] : null;
+    var trendTxt, trendColor, note;
+    if (pv == null) { trendTxt = 'baseline'; trendColor = '#5a6b66'; note = 'First read — this is the starting point.'; }
+    else {
+      var diff = v - pv;
+      if (diff >= 0.1) { trendTxt = '▲ improving'; trendColor = '#2e9e6b'; note = 'Nice gains this week — keep it up.'; improvedList.push(s[1]); }
+      else if (diff <= -0.1) { trendTxt = '▼ slipped'; trendColor = '#c9503a'; note = 'Dropped a little — worth a couple of quizzes here.'; }
+      else { trendTxt = '→ steady'; trendColor = '#5a6b66'; note = (v >= 2.4) ? 'Strong and holding — keep it sharp.' : 'Holding steady — a good area to push next.'; }
+    }
     var pct = Math.max(6, Math.min(100, Math.round((v - 1) / 2 * 100)));
-    masteryRows +=
-      '<tr>' +
-      '<td style="padding:6px 8px;font-size:14px;color:#1c2b28;width:38%">' + s[1] + '</td>' +
-      '<td style="padding:6px 8px;width:44%"><div style="background:#e4e1d6;border-radius:6px;height:10px"><div style="background:#0f5f57;height:10px;border-radius:6px;width:' + pct + '%"></div></div></td>' +
-      '<td style="padding:6px 8px;font-size:12px;color:#5a6b66;text-align:right;width:18%">' + masteryLabel(v) + '</td>' +
-      '</tr>';
+    subjectBlocks +=
+      '<div style="padding:10px 0;border-bottom:1px solid #eee">' +
+        '<table style="width:100%;border-collapse:collapse"><tr>' +
+          '<td style="font-size:14px;font-weight:700;color:#1c2b28">' + s[1] + '</td>' +
+          '<td style="text-align:right;font-size:12px;color:#5a6b66">' + masteryLabel(v) + ' · <span style="color:' + trendColor + ';font-weight:700">' + trendTxt + '</span></td>' +
+        '</tr></table>' +
+        '<div style="background:#e4e1d6;border-radius:6px;height:8px;margin:6px 0"><div style="background:#0f5f57;height:8px;border-radius:6px;width:' + pct + '%"></div></div>' +
+        '<div style="font-size:12px;color:#5a6b66">' + note + '</div>' +
+      '</div>';
   });
 
-  var msDone = 0; if (d.ms) { for (var k in d.ms) { if (d.ms[k]) msDone++; } }
-  var exp = d.exp || [];
-  var expHours = 0; exp.forEach(function (e) { expHours += (parseFloat(e.hours) || 0); });
+  // to review — count missed by subject
+  var revCount = {}; missed.forEach(function (id) { var sj = subjOfId(id); if (sj) revCount[sj] = (revCount[sj] || 0) + 1; });
+  var revParts = subs.filter(function (s) { return revCount[s[0]]; }).map(function (s) { return revCount[s[0]] + ' ' + s[1]; });
 
-  var dateStr = Utilities.formatDate(now, tz, 'd MMMM yyyy');
-  var weekLine = quizzesThisWeek
-    ? (quizzesThisWeek + ' quiz' + (quizzesThisWeek > 1 ? 'zes' : '') + ' this week' + (weekPct != null ? ' at ' + weekPct + '% average' : ''))
-    : 'No quizzes yet this week — jump back in!';
+  // milestones
+  var doneCount = 0; MILESTONES.forEach(function (m) { if (msNow[m.id]) doneCount++; });
+  var newly = MILESTONES.filter(function (m) { return msNow[m.id] && !prevMs[m.id]; });
+  var next = null; for (var i = 0; i < MILESTONES.length; i++) { if (!msNow[MILESTONES[i].id]) { next = MILESTONES[i]; break; } }
+
+  var dFrom = Utilities.formatDate(d7, tz, 'd MMM');
+  var dTo = Utilities.formatDate(now, tz, 'd MMM');
+  function delta(cur, prev, suffix) {
+    if (prev == null || cur == null) return '';
+    var diff = cur - prev;
+    if (diff === 0) return '<div style="font-size:11px;color:#5a6b66">same as last week</div>';
+    var up = diff > 0;
+    return '<div style="font-size:11px;color:' + (up ? '#2e9e6b' : '#c9503a') + '">' + (up ? '▲ +' : '▼ ') + diff + (suffix || '') + ' vs last week</div>';
+  }
+
+  var rec = 'Do 2–3 ' + (weakest || 'mixed') + ' quizzes';
+  if (expThis.length === 0) rec += ', and try to log one hands-on session on the farm';
+  rec += '.';
+
+  var tip = TIPS[(Math.floor(now.getTime() / 604800000)) % TIPS.length];
+
+  var headline;
+  if (qThis === 0) headline = 'a quiet week — a couple of quizzes will get you moving again.';
+  else if (accThis != null && accThis >= 80) headline = 'strong week — ' + qThis + ' quiz' + (qThis > 1 ? 'zes' : '') + ' at ' + accThis + '%. That’s vet-school pace.';
+  else headline = 'good effort — ' + qThis + ' quiz' + (qThis > 1 ? 'zes' : '') + ' this week' + (accThis != null ? ' at ' + accThis + '%' : '') + '.';
+
+  var expHrsTotalStr = (expHrsTotal % 1 === 0) ? String(expHrsTotal) : expHrsTotal.toFixed(1);
+  var nSettings = Object.keys(settings).length;
 
   var html =
-  '<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:600px;margin:0 auto;background:#f5f3ec;padding:0 0 20px">' +
+  '<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:600px;margin:0 auto;background:#f5f3ec;padding:0 0 22px">' +
     '<div style="background:#0a463f;color:#fff;padding:22px 20px">' +
       '<div style="font-size:20px;font-weight:700">Paige’s Road to Vet</div>' +
-      '<div style="font-size:13px;opacity:.85;margin-top:2px">Weekly progress · ' + dateStr + '</div>' +
+      '<div style="font-size:13px;opacity:.85;margin-top:2px">Weekly review · ' + dFrom + ' – ' + dTo + '</div>' +
     '</div>' +
     '<div style="padding:16px 20px">' +
+
+      '<div style="font-size:15px;color:#1c2b28;line-height:1.5;margin:2px 4px 14px">Hi Paige — ' + headline + '</div>' +
+
       '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
-        '<div style="font-size:15px;font-weight:700;color:#1c2b28;margin-bottom:8px">This week</div>' +
+        '<div style="font-size:15px;font-weight:700;color:#1c2b28;margin-bottom:10px">This week at a glance</div>' +
         '<table style="width:100%;border-collapse:collapse"><tr>' +
-          '<td style="text-align:center;padding:8px"><div style="font-size:26px;font-weight:800;color:#0f5f57">' + streak + '</div><div style="font-size:11px;color:#5a6b66">DAY STREAK</div></td>' +
-          '<td style="text-align:center;padding:8px"><div style="font-size:26px;font-weight:800;color:#0f5f57">' + quizzesThisWeek + '</div><div style="font-size:11px;color:#5a6b66">QUIZZES</div></td>' +
-          '<td style="text-align:center;padding:8px"><div style="font-size:26px;font-weight:800;color:#0f5f57">' + (weekPct != null ? weekPct + '%' : '–') + '</div><div style="font-size:11px;color:#5a6b66">AVG SCORE</div></td>' +
-        '</tr></table>' +
-        '<div style="font-size:13px;color:#5a6b66;text-align:center;margin-top:6px">' + weekLine + '</div>' +
-      '</div>' +
-      '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
-        '<div style="font-size:15px;font-weight:700;color:#1c2b28;margin-bottom:8px">Mastery by subject</div>' +
-        '<table style="width:100%;border-collapse:collapse">' + masteryRows + '</table>' +
-        '<div style="background:#e2efeb;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:13px;color:#0a463f">' +
-          '<b>Focus this week:</b> ' + (weakest || 'keep it balanced') + ' — your lowest subject right now. New questions here get added automatically.</div>' +
-      '</div>' +
-      '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
-        '<table style="width:100%;border-collapse:collapse"><tr>' +
-          '<td style="text-align:center;padding:8px"><div style="font-size:22px;font-weight:800;color:#0f5f57">' + msDone + '/26</div><div style="font-size:11px;color:#5a6b66">MILESTONES</div></td>' +
-          '<td style="text-align:center;padding:8px"><div style="font-size:22px;font-weight:800;color:#0f5f57">' + totalQuizzes + '</div><div style="font-size:11px;color:#5a6b66">TOTAL QUIZZES</div></td>' +
-          '<td style="text-align:center;padding:8px"><div style="font-size:22px;font-weight:800;color:#0f5f57">' + (expHours % 1 === 0 ? expHours : expHours.toFixed(1)) + '</div><div style="font-size:11px;color:#5a6b66">EXPERIENCE HRS</div></td>' +
+          '<td style="text-align:center;padding:6px;vertical-align:top"><div style="font-size:24px;font-weight:800;color:#0f5f57">' + qThis + '</div><div style="font-size:11px;color:#5a6b66">QUIZZES</div>' + delta(qThis, qPrev, '') + '</td>' +
+          '<td style="text-align:center;padding:6px;vertical-align:top"><div style="font-size:24px;font-weight:800;color:#0f5f57">' + (accThis != null ? accThis + '%' : '–') + '</div><div style="font-size:11px;color:#5a6b66">AVG SCORE</div>' + delta(accThis, accPrev, '%') + '</td>' +
+          '<td style="text-align:center;padding:6px;vertical-align:top"><div style="font-size:24px;font-weight:800;color:#0f5f57">' + streak + '</div><div style="font-size:11px;color:#5a6b66">DAY STREAK</div></td>' +
+          '<td style="text-align:center;padding:6px;vertical-align:top"><div style="font-size:24px;font-weight:800;color:#0f5f57">' + expHrsTotalStr + '</div><div style="font-size:11px;color:#5a6b66">FARM HRS</div></td>' +
         '</tr></table>' +
       '</div>' +
-      '<div style="text-align:center;font-size:13px;color:#5a6b66;padding:4px 10px">Every quiz and every hour on the farm is a step towards vet school. Keep going, Paige 🎓</div>' +
+
+      '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:700;color:#1c2b28;margin-bottom:2px">How each subject is tracking</div>' +
+        '<div style="font-size:12px;color:#5a6b66;margin-bottom:6px">Compared with last week</div>' +
+        subjectBlocks +
+        '<div style="font-size:12.5px;color:#0a463f;margin-top:10px">Strongest right now: <b>' + (strongest || '–') + '</b>' + (improvedList.length ? ' · Most improved: <b>' + improvedList.join(', ') + '</b>' : '') + '</div>' +
+      '</div>' +
+
+      (revParts.length ?
+      '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:700;color:#1c2b28;margin-bottom:6px">To revisit</div>' +
+        '<div style="font-size:13px;color:#5a6b66;line-height:1.5">You have <b>' + missed.length + '</b> question' + (missed.length > 1 ? 's' : '') + ' saved to review — ' + revParts.join(', ') + '. They’ll keep coming back in your quizzes until you’ve got them.</div>' +
+      '</div>' : '') +
+
+      '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:700;color:#1c2b28;margin-bottom:6px">Your pathway</div>' +
+        '<div style="font-size:13px;color:#1c2b28"><b>' + doneCount + ' of 26</b> milestones done.</div>' +
+        (newly.length ? '<div style="font-size:13px;color:#2e9e6b;margin-top:6px">🎉 Ticked off this week: ' + newly.map(function (m) { return m.t; }).join('; ') + '</div>' : '') +
+        (next ? '<div style="font-size:13px;color:#5a6b66;margin-top:6px">Next up: <b style="color:#0a463f">' + next.t + '</b></div>' : '<div style="font-size:13px;color:#2e9e6b;margin-top:6px">Every milestone done — incredible.</div>') +
+      '</div>' +
+
+      '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:700;color:#1c2b28;margin-bottom:6px">Hands-on experience</div>' +
+        '<div style="font-size:13px;color:#1c2b28">' + expHrsTotalStr + ' hours logged in total across ' + nSettings + ' setting' + (nSettings === 1 ? '' : 's') + '.</div>' +
+        '<div style="font-size:13px;color:' + (expThis.length ? '#2e9e6b' : '#c9503a') + ';margin-top:6px">' + (expThis.length ? (expThis.length + ' session' + (expThis.length > 1 ? 's' : '') + ' this week — brilliant.') : 'Nothing logged this week — even one session on the farm or at a clinic is real vet-school currency.') + '</div>' +
+      '</div>' +
+
+      '<div style="background:#e2efeb;border-radius:14px;padding:16px;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:700;color:#0a463f;margin-bottom:6px">Focus for next week</div>' +
+        '<div style="font-size:14px;color:#0a463f;line-height:1.5">' + rec + ' Fresh questions targeting <b>' + (weakest || 'your weak areas') + '</b> are already loaded.</div>' +
+      '</div>' +
+
+      '<div style="background:#f7edd6;border-radius:14px;padding:13px 15px;margin-bottom:12px;font-size:13px;color:#8a6d1f;line-height:1.5"><b>Worth knowing:</b> ' + tip + '</div>' +
+
+      '<div style="text-align:center;font-size:13px;color:#5a6b66;padding:4px 10px">You’re building this one week at a time, Paige. Keep going. 🎓</div>' +
     '</div>' +
   '</div>';
 
   MailApp.sendEmail({
     to: REPORT_TO,
-    subject: 'Paige’s Road to Vet — weekly progress (' + streak + '-day streak)',
+    subject: 'Paige’s week in review — ' + qThis + ' quiz' + (qThis === 1 ? '' : 'zes') + (accThis != null ? ' at ' + accThis + '%' : '') + ', focus: ' + (weakest || 'balanced'),
     htmlBody: html
   });
+
+  // store this week's snapshot so next week can compare
+  writeMeta('weeksnap', { date: Utilities.formatDate(now, tz, 'yyyy-MM-dd'), ability: ability, ms: msNow });
 }
 
 function json(obj) {
