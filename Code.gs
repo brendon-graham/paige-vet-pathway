@@ -19,9 +19,22 @@
 
 var SUBJECTS = {bio:1, chem:1, phys:1, vet:1, math:1};
 
+// Weekly report recipients + a light key so the send/trigger URLs can't be hit by strangers.
+var REPORT_TO = 'paige.linda.graham@gmail.com,brendonemmagraham@gmail.com';
+var ADMIN_KEY = 'pfe-roadtovet-2026';
+
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || 'questions';
   if (action === 'state') return json(readState((e.parameter.id || 'paige')));
+  if (action === 'report') {
+    if (e.parameter.key !== ADMIN_KEY) return json({ok:false, error:'bad key'});
+    sendWeeklyReport();
+    return json({ok:true, sent:true, to:REPORT_TO});
+  }
+  if (action === 'installtrigger') {
+    if (e.parameter.key !== ADMIN_KEY) return json({ok:false, error:'bad key'});
+    return json(installWeeklyTrigger());
+  }
   return json(readQuestions());
 }
 
@@ -182,6 +195,107 @@ function writePending(rows) {
     ]);
   });
   return { ok: true, added: rows.length };
+}
+
+// ---- Weekly progress email ----
+
+function masteryLabel(v) {
+  if (v < 1.35) return 'Beginner';
+  if (v < 1.85) return 'Developing';
+  if (v < 2.4)  return 'Confident';
+  return 'Strong';
+}
+
+function installWeeklyTrigger() {
+  var existing = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < existing.length; i++) {
+    if (existing[i].getHandlerFunction() === 'sendWeeklyReport') ScriptApp.deleteTrigger(existing[i]);
+  }
+  ScriptApp.newTrigger('sendWeeklyReport')
+    .timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(11).create();
+  return { ok: true, installed: 'sendWeeklyReport every Monday 11:00 (script time zone: ' + Session.getScriptTimeZone() + ')' };
+}
+
+function sendWeeklyReport() {
+  var st = readState('paige');
+  var d = (st && st.data) || {};
+  var q = d.quiz || {};
+  var history = q.history || [];
+  var ability = q.ability || {};
+  var streak = (q.streak && q.streak.count) || 0;
+  var review = (q.missed || []).length;
+
+  var tz = Session.getScriptTimeZone();
+  var now = new Date();
+  var weekAgo = new Date(now.getTime() - 7 * 86400000);
+  var weekHist = history.filter(function (h) { return h && h.date && new Date(h.date) >= weekAgo; });
+  var totalQuizzes = history.length;
+  var quizzesThisWeek = weekHist.length;
+  var wc = 0, wt = 0;
+  weekHist.forEach(function (h) { wc += (h.correct || 0); wt += (h.total || 0); });
+  var weekPct = wt ? Math.round(wc / wt * 100) : null;
+
+  var subs = [['bio','Biology'],['chem','Chemistry'],['phys','Physics'],['vet','Vet & Animal'],['math','Vet Maths']];
+  var weakest = null, weakAb = 99, masteryRows = '';
+  subs.forEach(function (s) {
+    var v = typeof ability[s[0]] === 'number' ? ability[s[0]] : 1.5;
+    if (v < weakAb) { weakAb = v; weakest = s[1]; }
+    var pct = Math.max(6, Math.min(100, Math.round((v - 1) / 2 * 100)));
+    masteryRows +=
+      '<tr>' +
+      '<td style="padding:6px 8px;font-size:14px;color:#1c2b28;width:38%">' + s[1] + '</td>' +
+      '<td style="padding:6px 8px;width:44%"><div style="background:#e4e1d6;border-radius:6px;height:10px"><div style="background:#0f5f57;height:10px;border-radius:6px;width:' + pct + '%"></div></div></td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#5a6b66;text-align:right;width:18%">' + masteryLabel(v) + '</td>' +
+      '</tr>';
+  });
+
+  var msDone = 0; if (d.ms) { for (var k in d.ms) { if (d.ms[k]) msDone++; } }
+  var exp = d.exp || [];
+  var expHours = 0; exp.forEach(function (e) { expHours += (parseFloat(e.hours) || 0); });
+
+  var dateStr = Utilities.formatDate(now, tz, 'd MMMM yyyy');
+  var weekLine = quizzesThisWeek
+    ? (quizzesThisWeek + ' quiz' + (quizzesThisWeek > 1 ? 'zes' : '') + ' this week' + (weekPct != null ? ' at ' + weekPct + '% average' : ''))
+    : 'No quizzes yet this week — jump back in!';
+
+  var html =
+  '<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:600px;margin:0 auto;background:#f5f3ec;padding:0 0 20px">' +
+    '<div style="background:#0a463f;color:#fff;padding:22px 20px">' +
+      '<div style="font-size:20px;font-weight:700">Paige’s Road to Vet</div>' +
+      '<div style="font-size:13px;opacity:.85;margin-top:2px">Weekly progress · ' + dateStr + '</div>' +
+    '</div>' +
+    '<div style="padding:16px 20px">' +
+      '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:700;color:#1c2b28;margin-bottom:8px">This week</div>' +
+        '<table style="width:100%;border-collapse:collapse"><tr>' +
+          '<td style="text-align:center;padding:8px"><div style="font-size:26px;font-weight:800;color:#0f5f57">' + streak + '</div><div style="font-size:11px;color:#5a6b66">DAY STREAK</div></td>' +
+          '<td style="text-align:center;padding:8px"><div style="font-size:26px;font-weight:800;color:#0f5f57">' + quizzesThisWeek + '</div><div style="font-size:11px;color:#5a6b66">QUIZZES</div></td>' +
+          '<td style="text-align:center;padding:8px"><div style="font-size:26px;font-weight:800;color:#0f5f57">' + (weekPct != null ? weekPct + '%' : '–') + '</div><div style="font-size:11px;color:#5a6b66">AVG SCORE</div></td>' +
+        '</tr></table>' +
+        '<div style="font-size:13px;color:#5a6b66;text-align:center;margin-top:6px">' + weekLine + '</div>' +
+      '</div>' +
+      '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:700;color:#1c2b28;margin-bottom:8px">Mastery by subject</div>' +
+        '<table style="width:100%;border-collapse:collapse">' + masteryRows + '</table>' +
+        '<div style="background:#e2efeb;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:13px;color:#0a463f">' +
+          '<b>Focus this week:</b> ' + (weakest || 'keep it balanced') + ' — your lowest subject right now. New questions here get added automatically.</div>' +
+      '</div>' +
+      '<div style="background:#fff;border:1px solid #e4e1d6;border-radius:14px;padding:16px;margin-bottom:14px">' +
+        '<table style="width:100%;border-collapse:collapse"><tr>' +
+          '<td style="text-align:center;padding:8px"><div style="font-size:22px;font-weight:800;color:#0f5f57">' + msDone + '/26</div><div style="font-size:11px;color:#5a6b66">MILESTONES</div></td>' +
+          '<td style="text-align:center;padding:8px"><div style="font-size:22px;font-weight:800;color:#0f5f57">' + totalQuizzes + '</div><div style="font-size:11px;color:#5a6b66">TOTAL QUIZZES</div></td>' +
+          '<td style="text-align:center;padding:8px"><div style="font-size:22px;font-weight:800;color:#0f5f57">' + (expHours % 1 === 0 ? expHours : expHours.toFixed(1)) + '</div><div style="font-size:11px;color:#5a6b66">EXPERIENCE HRS</div></td>' +
+        '</tr></table>' +
+      '</div>' +
+      '<div style="text-align:center;font-size:13px;color:#5a6b66;padding:4px 10px">Every quiz and every hour on the farm is a step towards vet school. Keep going, Paige 🎓</div>' +
+    '</div>' +
+  '</div>';
+
+  MailApp.sendEmail({
+    to: REPORT_TO,
+    subject: 'Paige’s Road to Vet — weekly progress (' + streak + '-day streak)',
+    htmlBody: html
+  });
 }
 
 function json(obj) {
