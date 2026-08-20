@@ -35,6 +35,10 @@ function doGet(e) {
     if (e.parameter.key !== ADMIN_KEY) return json({ok:false, error:'bad key'});
     return json(installWeeklyTrigger());
   }
+  if (action === 'deactivate') {
+    if (e.parameter.key !== ADMIN_KEY) return json({ok:false, error:'bad key'});
+    return json(deactivateQuestion(e.parameter.id));
+  }
   return json(readQuestions());
 }
 
@@ -161,7 +165,7 @@ function writeQuestions(rows) {
   var existing = {};
   var vals = sh.getDataRange().getValues();
   for (var r = 1; r < vals.length; r++) existing[String(vals[r][0])] = true;
-  var added = 0;
+  var toWrite = [];
   rows.forEach(function(row) {
     var subj = String(row.subj || '').trim();
     if (!SUBJECTS[subj]) return;
@@ -170,14 +174,36 @@ function writeQuestions(rows) {
     var ans = row.answer != null ? parseInt(row.answer, 10) : (row.a != null ? row.a + 1 : 0);
     if (!(ans >= 1 && ans <= o.length)) return;
     if (!row.q || !row.ex) return;
-    var id = String(row.id || ('gen_' + subj + '_' + Date.now() + '_' + added));
+    var id = String(row.id || ('gen_' + subj + '_' + Date.now() + '_' + toWrite.length));
     if (existing[id]) return;
     existing[id] = true;
-    sh.appendRow([ id, subj, parseInt(row.lvl,10)||1, String(row.q),
-      o[0]||'', o[1]||'', o[2]||'', o[3]||'', ans, String(row.ex), true ]);
-    added++;
+    toWrite.push([ id, subj, String(parseInt(row.lvl,10)||1), String(row.q),
+      o[0]||'', o[1]||'', o[2]||'', o[3]||'', String(ans), String(row.ex), 'TRUE' ]);
   });
-  return { ok: true, added: added };
+  if (toWrite.length) {
+    // format the target cells as plain text BEFORE writing so Sheets can't coerce
+    // fraction-style options like "1/4" into dates, or "1 - 2" into numbers.
+    var startRow = sh.getLastRow() + 1;
+    var rng = sh.getRange(startRow, 1, toWrite.length, 11);
+    rng.setNumberFormat('@');
+    rng.setValues(toWrite);
+  }
+  return { ok: true, added: toWrite.length };
+}
+
+// Retire a question by id (set active = FALSE) so the app stops serving it. Used to pull
+// a bad question without hunting for the row.
+function deactivateQuestion(id) {
+  if (!id) return { ok: false, error: 'no id' };
+  var sh = sheet('Questions');
+  var vals = sh.getDataRange().getValues();
+  for (var r = 1; r < vals.length; r++) {
+    if (String(vals[r][0]) === String(id)) {
+      sh.getRange(r + 1, 11).setValue('FALSE');
+      return { ok: true, deactivated: id };
+    }
+  }
+  return { ok: false, error: 'not found' };
 }
 
 function writePending(rows) {
