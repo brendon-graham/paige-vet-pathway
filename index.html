@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<meta name="app-version" content="pvp-v1.3.1">
+<meta name="app-version" content="pvp-v1.3.2">
 <meta name="theme-color" content="#0f5f57">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -363,7 +363,7 @@
       <button class="btn ghost sm" style="flex:1" id="set-clear">Go local only</button>
     </div>
     <div style="text-align:center;margin-top:14px"><button class="link" id="set-cancel">Close</button></div>
-    <div class="tiny muted" style="text-align:center;margin-top:12px">Road to Vet · v1.3.1</div>
+    <div class="tiny muted" style="text-align:center;margin-top:12px">Road to Vet · v1.3.2</div>
   </div>
 </div>
 
@@ -1049,8 +1049,20 @@ function getEndpoint(){return (load("pvp_endpoint","")||"").trim();}
 function appStateBlob(){return{ms:msState,exp:expLog,why:whyText,learn:learnRead,quiz:quizState};}
 let pushTimer=null,suppressPush=false;
 function schedulePush(){if(!getEndpoint()||suppressPush)return;clearTimeout(pushTimer);pushTimer=setTimeout(pushState,4000);}
+function hasLocalProgress(){
+  try{
+    if(quizState&&quizState.history&&quizState.history.length)return true;
+    if(quizState&&quizState.streak&&quizState.streak.count)return true;
+    if(msState&&Object.keys(msState).some(k=>msState[k]))return true;
+    if(expLog&&expLog.length)return true;
+    if(whyText)return true;
+    if(learnRead&&Object.keys(learnRead).length)return true;
+  }catch(e){}
+  return false;
+}
 function pushState(){
   const ep=getEndpoint();if(!ep)return;
+  if(!hasLocalProgress())return;   // a blank device must never overwrite the cloud copy
   const ts=Date.now();
   const body=JSON.stringify({type:"state",id:"paige",updatedAt:ts,data:appStateBlob()});
   fetch(ep,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body}).then(()=>{save("pvp_stateTs",ts);}).catch(()=>{});
@@ -1083,13 +1095,14 @@ async function pullRemote(){
     const r=await fetch(ep+"?action=questions&t="+Date.now(),{cache:"no-store"});
     const qs=await r.json();applyRemoteQuestions(qs);
   }catch(e){}
+  let adopted=false;
   try{
     const r=await fetch(ep+"?action=state&id=paige&t="+Date.now(),{cache:"no-store"});
     const s=await r.json();
-    if(s&&s.data&&s.updatedAt&&s.updatedAt>(load("pvp_stateTs",0))){adoptState(s.data);save("pvp_stateTs",s.updatedAt);}
+    if(s&&s.data&&s.updatedAt&&s.updatedAt>(load("pvp_stateTs",0))){adoptState(s.data);save("pvp_stateTs",s.updatedAt);adopted=true;}
   }catch(e){}
-  // first connect (or never-confirmed push): upload local progress so it isn't stranded on the phone
-  if(getEndpoint()&&(load("pvp_stateTs",0)===0)){pushState();}
+  // if the cloud didn't have newer progress, upload ours — pushState() self-guards against a blank device
+  if(getEndpoint()&&!adopted){pushState();}
 }
 function renderSetState(){
   const on=!!getEndpoint();
@@ -1098,7 +1111,7 @@ function renderSetState(){
 function openSettings(){$("set-endpoint").value=getEndpoint();renderSetState();$("set-overlay").classList.add("open");}
 function closeSettings(){$("set-overlay").classList.remove("open");}
 $("gear-btn")&&renderSetState();
-$("set-save").addEventListener("click",()=>{save("pvp_endpoint",$("set-endpoint").value.trim());renderSetState();save("pvp_stateTs",0);pullRemote();pushState();});
+$("set-save").addEventListener("click",()=>{save("pvp_endpoint",$("set-endpoint").value.trim());renderSetState();save("pvp_stateTs",0);pullRemote();});
 $("set-sync").addEventListener("click",()=>{pushState();pullRemote();closeSettings();});
 $("set-clear").addEventListener("click",()=>{save("pvp_endpoint","");$("set-endpoint").value="";renderSetState();});
 $("set-cancel").addEventListener("click",closeSettings);
