@@ -96,6 +96,19 @@ function readState(id) {
   return { id: id, updatedAt: 0, data: null };
 }
 
+// True if a state blob carries real progress (any quiz history/streak, milestone, experience, why).
+function stateHasProgress(d) {
+  try {
+    if (d && d.quiz && d.quiz.history && d.quiz.history.length) return true;
+    if (d && d.quiz && d.quiz.streak && d.quiz.streak.count) return true;
+    if (d && d.ms) { for (var k in d.ms) { if (d.ms[k]) return true; } }
+    if (d && d.exp && d.exp.length) return true;
+    if (d && d.why) return true;
+    if (d && d.learn) { for (var k2 in d.learn) { if (d.learn[k2]) return true; } }
+  } catch (e) {}
+  return false;
+}
+
 function writeState(body) {
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
@@ -107,6 +120,12 @@ function writeState(body) {
     var values = sh.getDataRange().getValues();
     for (var r = 1; r < values.length; r++) {
       if (String(values[r][0]) === id) {
+        var existingData = {};
+        try { existingData = JSON.parse(values[r][2]); } catch (e) {}
+        // never let a blank/empty device overwrite a record that already has real progress
+        if (stateHasProgress(existingData) && !stateHasProgress(body.data)) {
+          return { ok: true, note: 'blank push ignored, existing progress protected' };
+        }
         if ((Number(values[r][1]) || 0) > ts) return { ok: true, note: 'stale, ignored' };
         sh.getRange(r + 1, 2).setValue(ts);
         sh.getRange(r + 1, 3).setValue(jsonStr);
